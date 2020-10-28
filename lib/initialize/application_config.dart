@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:mensa_jt21/calendar/calendar_service.dart';
+import 'package:mensa_jt21/calendar/favorites_service.dart';
 import 'package:mensa_jt21/initialize/debug_settings.dart';
 import 'package:mensa_jt21/online/online_calendar.dart';
 import 'package:mensa_jt21/online/online_service.dart';
@@ -8,6 +9,7 @@ import 'package:mensa_jt21/online/online_service.dart';
 class Application extends InheritedWidget {
   Application({@required Widget child}) : super(child: child) {
     GetIt.instance.registerSingleton<DebugSettings>(DebugSettings());
+    GetIt.instance.registerSingleton<FavoritesService>(FavoritesService());
     GetIt.instance.registerSingleton<OnlineService>(OnlineService());
     GetIt.instance.registerSingleton<OnlineCalendar>(_getOnlineCalendarImpl());
     GetIt.instance.registerSingleton<CalendarService>(CalendarService());

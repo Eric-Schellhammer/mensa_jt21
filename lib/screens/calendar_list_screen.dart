@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:mensa_jt21/calendar/calendar_entry.dart';
 import 'package:mensa_jt21/calendar/calendar_service.dart';
+import 'package:mensa_jt21/calendar/favorites_service.dart';
 import 'package:mensa_jt21/initialize/debug_settings.dart';
 import 'package:mensa_jt21/online/online_service.dart';
 import 'package:mensa_jt21/screens/debug_screen.dart';
@@ -31,10 +32,11 @@ class CalendarListScreenState extends State<CalendarListScreen> {
     onlineService.registerModeListener((onlineMode) => _updateOnlineMode(onlineMode));
     onlineService.init();
     final calendarService = GetIt.instance.get<CalendarService>();
-    calendarService.registerUpdateListener((calendar) {
-      _updateCalendar(calendar);
-    });
+    calendarService.registerUpdateListener((calendar) => _updateCalendar(calendar));
     calendarService.initializeWithLocalFile();
+    final favoritesService = GetIt.instance.get<FavoritesService>();
+    favoritesService.registerUpdateListener(() => setState(() {}));
+    favoritesService.initialize();
   }
 
   @override

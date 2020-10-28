@@ -1,6 +1,9 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
 import 'package:mensa_jt21/calendar/calendar_service.dart';
+import 'package:mensa_jt21/calendar/favorites_service.dart';
 
 class CalendarListEntryWidget extends StatelessWidget {
   final CalendarEntry calendarEntry;
@@ -9,19 +12,58 @@ class CalendarListEntryWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.fromLTRB(16, 8, 16, 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(calendarEntry.eventId.toString() + " (" + calendarEntry.eventGroupId.toString() + ")"),
-          Text(
-            calendarEntry.name,
-            style: TextStyle(fontWeight: FontWeight.bold),
+    return Theme(
+        data: Theme.of(context).copyWith(
+          textTheme: TextTheme(
+            bodyText2: TextStyle(
+              color: calendarEntry.abgesagt ? Colors.grey : Colors.black,
+              decoration: calendarEntry.abgesagt ? TextDecoration.lineThrough : null,
+            ),
           ),
-          Text(DateFormat("dd.MM.yy, HH:mm").format(calendarEntry.start) + " Uhr"),
-        ],
-      ),
-    );
+        ),
+        // additional Builder to transfer the Theme defined above
+        child: Builder(builder: (BuildContext context) {
+          return Padding(
+              padding: EdgeInsets.fromLTRB(16, 8, 16, 8),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.fromLTRB(0, 8, 8, 8),
+                        child: IconButton(
+                          icon: Icon(
+                            Icons.favorite,
+                            color: GetIt.instance.get<FavoritesService>().isFavorite(calendarEntry.eventId) ? Colors.pink : Colors.grey[200],
+                          ),
+                          onPressed: () {
+                            GetIt.instance.get<FavoritesService>().toggleFavorite(calendarEntry.eventId);
+                          },
+                        ),
+                      ),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(calendarEntry.eventId.toString() + " (" + calendarEntry.eventGroupId.toString() + ")"),
+                            Text(
+                              calendarEntry.name,
+                              softWrap: true,
+                              style: Theme.of(context).textTheme.bodyText2.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                            ),
+                            Text(
+                              DateFormat("dd.MM.yy, HH:mm").format(calendarEntry.start) + " Uhr",
+                              style: Theme.of(context).textTheme.bodyText2,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ));
+        }));
   }
 }

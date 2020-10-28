@@ -1,10 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
 import 'package:mensa_jt21/online/online_calendar.dart';
 import 'package:mensa_jt21/tools/compare.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import 'converter.dart';
 
 class CalendarService {
   static const String _CALENDAR_ENTRIES = "calendarEntries";
@@ -33,7 +33,7 @@ class CalendarService {
     GetIt.instance
         .get<OnlineCalendar>()
         .getCalendarDateJson()
-        .then((remoteCalendarDateJson) => CalendarConverter().convertDate(remoteCalendarDateJson))
+        .then((remoteCalendarDateJson) => _convertDate(remoteCalendarDateJson))
         .then((remoteCalendarDate) => _calendarDate.isBefore(remoteCalendarDate))
         .then((isAvailable) => receiver.call(isAvailable));
   }
@@ -42,7 +42,7 @@ class CalendarService {
   void checkForUpdate() {
     final onlineCalendar = GetIt.instance.get<OnlineCalendar>();
     onlineCalendar.getCalendarDateJson().then((remoteCalendarDateJson) {
-      final DateTime remoteCalendarDate = CalendarConverter().convertDate(remoteCalendarDateJson);
+      final DateTime remoteCalendarDate = _convertDate(remoteCalendarDateJson);
       if (_calendarDate.isBefore(remoteCalendarDate)) {
         onlineCalendar.getCalendarJson().then((calendarJson) => _setCalendarJson(remoteCalendarDateJson, calendarJson));
       }
@@ -57,54 +57,107 @@ class CalendarService {
   void _setCalendarJson(String calendarDateJson, String calendarJson) {
     _prefs.setString(_CALENDAR_DATE, calendarDateJson);
     _prefs.setString(_CALENDAR_ENTRIES, calendarJson);
-    final calendarConverter = CalendarConverter();
-    _calendarDate = calendarConverter.convertDate(calendarDateJson);
-    _calendarEntries = calendarConverter.convertEntries(calendarJson);
+    _calendarDate = _convertDate(calendarDateJson);
+    _calendarEntries = _convertEntries(calendarJson);
     _calendarEntries.sort();
     if (_listener != null) _listener.call(_calendarEntries);
+  }
+
+  DateTime _convertDate(String jsonString) {
+    return DateTime.parse(JsonDecoder().convert(jsonString)["date"]);
+  }
+
+  List<CalendarEntry> _convertEntries(String jsonString) {
+    final List<CalendarEntry> entries = List();
+    final jsonEntries = JsonDecoder().convert(jsonString);
+    if (jsonEntries != null) {
+      jsonEntries.forEach((jsonElement) {
+        entries.add(CalendarEntry.fromJson(jsonElement));
+      });
+    }
+    return entries;
   }
 }
 
 class CalendarEntry implements Comparable<CalendarEntry> {
-  int eventGroupId;
-  int eventId;
-  String name;
-  String kategorie;
-  String dauer;
-  DateTime start;
-  String anbieter;
-  String location;
-  String strasse;
-  String plz;
-  String ortsname;
-  String gebaeude;
-  String raum;
-  String lat;
-  String lon;
-  String abmarsch;
-  String abgesagt;
-  String wordpress;
-  String eventtext;
-  String bild;
-  String bildtitel;
-  String barrierefreiheit;
-  String haltestelle;
+  final int eventGroupId;
+  final int eventId;
+  final String name;
+  final String kategorie;
+  final String dauer;
+  final DateTime start;
+  final String anbieter;
+  final String location;
+  final String strasse;
+  final String plz;
+  final String ortsname;
+  final String gebaeude;
+  final String raum;
+  final String lat;
+  final String lon;
+  final String abmarsch;
+  final bool abgesagt;
+  final String wordpress;
+  final String eventtext;
+  final String bild;
+  final String bildtitel;
+  final String barrierefreiheit;
+  final String haltestelle;
 
-  Map<String, dynamic> _values;
+  CalendarEntry(
+      {this.eventGroupId,
+      this.eventId,
+      this.name,
+      this.kategorie,
+      this.dauer,
+      this.start,
+      this.anbieter,
+      this.location,
+      this.strasse,
+      this.plz,
+      this.ortsname,
+      this.gebaeude,
+      this.raum,
+      this.lat,
+      this.lon,
+      this.abmarsch,
+      this.abgesagt,
+      this.wordpress,
+      this.eventtext,
+      this.bild,
+      this.bildtitel,
+      this.barrierefreiheit,
+      this.haltestelle});
 
-  CalendarEntry(Map<String, dynamic> json) {
-    _values = json;
-    eventGroupId = int.parse(_values["ID"]);
-    eventId = int.parse(_values["t_ID"]);
-    name = _values["name"];
-    start = DateTime.parse(_values["start"]);
+  factory CalendarEntry.fromJson(Map<String, dynamic> json) {
+    return CalendarEntry(
+        eventGroupId: int.parse(json["ID"]),
+        eventId: int.parse(json["t_ID"]),
+        name: json["name"],
+        kategorie: json["kategorie"],
+        dauer: json["dauer"],
+        start: DateTime.parse(json["start"]),
+        anbieter: json["anbieter"],
+        location: json["location"],
+        strasse: json["strasse"],
+        plz: json["plz"],
+        ortsname: json["ortsname"],
+        gebaeude: json["gebaeude"],
+        raum: json["raum"],
+        lat: json["lat"],
+        lon: json["lon"],
+        abmarsch: json["abmarsch"],
+        abgesagt: json["abgesagt"] != "0",
+        wordpress: json["wordpress"],
+        eventtext: json["eventtext"],
+        bild: json["bild"],
+        bildtitel: json["bildtitel"],
+        barrierefreiheit: json["barrierefreiheit"],
+        haltestelle: json["haltestelle"]);
   }
 
   @override
   int compareTo(CalendarEntry other) {
-    return CascadedComparator(this, other)
-        .then((ce) => ce.start)
-        .then((ce) => ce.name)
-        .calculate();
+    return CascadedComparator(this, other).then((ce) => ce.eventId).then((ce) => ce.start).then((ce) => ce.name).calculate();
   }
 }
