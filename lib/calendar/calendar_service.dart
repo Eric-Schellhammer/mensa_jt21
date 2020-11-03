@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:core';
 
 import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
@@ -60,6 +61,10 @@ class CalendarService {
     _calendarDate = _convertDate(calendarDateJson);
     _calendarEntries = _convertEntries(calendarJson);
     _calendarEntries.sort();
+    _callListener();
+  }
+
+  void _callListener() {
     if (_listener != null) _listener.call(_calendarEntries);
   }
 
@@ -158,6 +163,6 @@ class CalendarEntry implements Comparable<CalendarEntry> {
 
   @override
   int compareTo(CalendarEntry other) {
-    return CascadedComparator(this, other).then((ce) => ce.eventId).then((ce) => ce.start).then((ce) => ce.name).calculate();
+    return CascadedComparator(this, other).then((ce) => ce.start).then((ce) => ce.name).calculate();
   }
 }

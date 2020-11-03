@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
+import 'package:intl/intl.dart';
 import 'package:mensa_jt21/calendar/calendar_entry.dart';
 import 'package:mensa_jt21/calendar/calendar_service.dart';
+import 'package:mensa_jt21/calendar/calendar_settings_service.dart';
 import 'package:mensa_jt21/calendar/favorites_service.dart';
 import 'package:mensa_jt21/initialize/debug_settings.dart';
 import 'package:mensa_jt21/online/online_service.dart';
@@ -21,7 +23,10 @@ class CalendarListScreenState extends State<CalendarListScreen> {
   static const MENU_SETTINGS = 'Einstellungen';
   static const MENU_DEBUG = 'Debug';
 
-  List<CalendarEntry> _children = List();
+  List<CalendarEntry> _allEventsByDate = List();
+  List<Widget> _displayedWidgets = List();
+  CalendarSorting _sorting;
+  CalendarDateFormat _dateFormat;
   OnlineMode _onlineMode;
   bool _updateAvailable = false;
 
@@ -31,11 +36,14 @@ class CalendarListScreenState extends State<CalendarListScreen> {
     final onlineService = GetIt.instance.get<OnlineService>();
     onlineService.registerModeListener((onlineMode) => _updateOnlineMode(onlineMode));
     onlineService.init();
+    final calendarSettingsService = GetIt.instance.get<CalendarSettingsService>();
+    calendarSettingsService.registerListener((sorting, dateFormat) => _updateCalendarSettings(sorting, dateFormat));
+    calendarSettingsService.initialize();
     final calendarService = GetIt.instance.get<CalendarService>();
-    calendarService.registerUpdateListener((calendar) => _updateCalendar(calendar));
+    calendarService.registerUpdateListener((calendar) => _updateCalendarEntries(calendar));
     calendarService.initializeWithLocalFile();
     final favoritesService = GetIt.instance.get<FavoritesService>();
-    favoritesService.registerUpdateListener(() => setState(() {}));
+    favoritesService.registerUpdateListener(() => _refreshList());
     favoritesService.initialize();
   }
 
@@ -194,20 +202,74 @@ class CalendarListScreenState extends State<CalendarListScreen> {
 
   Widget _buildList() {
     return ListView.builder(
-      itemBuilder: (BuildContext context, int index) => CalendarListEntryWidget(_children[index]),
-      itemCount: _children.length,
+      itemBuilder: (BuildContext context, int index) => _displayedWidgets[index],
+      itemCount: _displayedWidgets.length,
     );
   }
 
-  void _updateCalendar(List<CalendarEntry> calendar) {
+  void _updateCalendarEntries(List<CalendarEntry> calendar) {
     if (mounted)
       setState(() {
-        _children = calendar;
+        _allEventsByDate = calendar;
         _updateAvailable = false;
+        _transferEventsToWidgets();
       });
     else {
-      _children = calendar;
+      _allEventsByDate = calendar;
       _updateAvailable = false;
+      _transferEventsToWidgets();
+    }
+  }
+
+  void _updateCalendarSettings(CalendarSorting sorting, CalendarDateFormat dateFormat) {
+    if (mounted)
+      setState(() {
+        _sorting = sorting;
+        _dateFormat = dateFormat;
+        _transferEventsToWidgets();
+      });
+    else {
+      _sorting = sorting;
+      _dateFormat = dateFormat;
+      _transferEventsToWidgets();
+    }
+  }
+
+  void _refreshList() {
+    if (mounted)
+      setState(() {
+        _transferEventsToWidgets();
+      });
+    else
+      _transferEventsToWidgets();
+  }
+
+  void _transferEventsToWidgets() {
+    final favoritesService = GetIt.instance.get<FavoritesService>();
+    _displayedWidgets = List();
+    switch (_sorting) {
+      case CalendarSorting.ALL_BY_DATE:
+        int lastDay;
+        _allEventsByDate.forEach((element) {
+          // TODO how to restrict DateTime to Date?
+          final int currentDay = element.start.year * 10000 + element.start.month * 100 + element.start.day;
+          if (lastDay == null || lastDay != currentDay) {
+            _displayedWidgets.add(Padding(
+              padding: EdgeInsets.fromLTRB(32, 32, 16, 16),
+              child: Text(
+                DateFormat(_dateFormat.subtitleFormat).format(element.start),
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+              ),
+            ));
+            lastDay = currentDay;
+          }
+          _displayedWidgets.add(new CalendarListEntryWidget(element, _dateFormat, favoritesService.isFavorite(element.eventId)));
+        });
+        break;
+      case CalendarSorting.GROUP_BY_DATE:
+      case CalendarSorting.GROUP_BY_TYPE:
+        _displayedWidgets.add(Text("NO VALID SORTING"));
+        break;
     }
   }
 

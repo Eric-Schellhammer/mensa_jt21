@@ -3,12 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
 import 'package:mensa_jt21/calendar/calendar_service.dart';
+import 'package:mensa_jt21/calendar/calendar_settings_service.dart';
 import 'package:mensa_jt21/calendar/favorites_service.dart';
 
 class CalendarListEntryWidget extends StatelessWidget {
   final CalendarEntry calendarEntry;
+  final CalendarDateFormat calendarDateFormat;
+  final bool isFavorite;
 
-  const CalendarListEntryWidget(this.calendarEntry);
+  const CalendarListEntryWidget(this.calendarEntry, this.calendarDateFormat, this.isFavorite);
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +37,7 @@ class CalendarListEntryWidget extends StatelessWidget {
                         child: IconButton(
                           icon: Icon(
                             Icons.favorite,
-                            color: GetIt.instance.get<FavoritesService>().isFavorite(calendarEntry.eventId) ? Colors.pink : Colors.grey[200],
+                            color: isFavorite ? Colors.pink : Colors.grey[200],
                           ),
                           onPressed: () {
                             GetIt.instance.get<FavoritesService>().toggleFavorite(calendarEntry.eventId);
@@ -54,7 +57,7 @@ class CalendarListEntryWidget extends StatelessWidget {
                                   ),
                             ),
                             Text(
-                              DateFormat("dd.MM.yy, HH:mm").format(calendarEntry.start) + " Uhr",
+                              DateFormat(calendarDateFormat.startTimeFormat).format(calendarEntry.start),
                               style: Theme.of(context).textTheme.bodyText2,
                             ),
                           ],

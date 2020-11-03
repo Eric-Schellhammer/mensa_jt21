@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
+import 'package:mensa_jt21/calendar/calendar_settings_service.dart';
 import 'package:mensa_jt21/online/online_service.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -12,6 +13,8 @@ class SettingsScreen extends StatefulWidget {
 
 class SettingsScreenState extends State<SettingsScreen> {
   OnlineMode _selectedOnlineMode;
+  CalendarSorting _selectedCalendarSorting;
+  CalendarDateFormat _selectedDateFormat;
 
   @override
   void initState() {
@@ -24,7 +27,18 @@ class SettingsScreenState extends State<SettingsScreen> {
       else
         _selectedOnlineMode = mode;
     });
-    // TODO remove listener
+    GetIt.instance.get<CalendarSettingsService>().registerListener((sorting, dateFormat) {
+      if (mounted)
+        setState(() {
+          _selectedCalendarSorting = sorting;
+          _selectedDateFormat = dateFormat;
+        });
+      else {
+        _selectedCalendarSorting = sorting;
+        _selectedDateFormat = dateFormat;
+      }
+    });
+    // TODO remove listeners
   }
 
   @override
@@ -35,13 +49,20 @@ class SettingsScreenState extends State<SettingsScreen> {
       ),
       body: Column(
         children: [
+          Padding(
+            padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
+            child: Text(
+              "Haupteinstellungen:",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+            ),
+          ),
           Row(children: [
             Padding(
-              padding: EdgeInsets.all(16.0),
+              padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
               child: Text("Online Modus:"),
             ),
             Padding(
-              padding: EdgeInsets.fromLTRB(0, 16, 16, 16),
+              padding: EdgeInsets.fromLTRB(0, 8, 16, 0),
               child: DropdownButton<OnlineMode>(
                 value: _selectedOnlineMode,
                 items: [
@@ -79,6 +100,73 @@ class SettingsScreenState extends State<SettingsScreen> {
               softWrap: true,
               maxLines: 10,
             ),
+          ),
+          Padding(
+            padding: EdgeInsets.fromLTRB(16, 24, 16, 0),
+            child: Text(
+              "Veranstaltungskalender:",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+            ),
+          ),
+          Row(
+            children: [
+              Padding(
+                padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
+                child: Text("Gruppierung:"),
+              ),
+              Padding(
+                  padding: EdgeInsets.fromLTRB(0, 8, 16, 0),
+                  child: DropdownButton<CalendarSorting>(
+                    value: _selectedCalendarSorting,
+                    items: [
+                      DropdownMenuItem<CalendarSorting>(
+                        value: CalendarSorting.ALL_BY_DATE,
+                        child: Text("alles, nach Datum sortiert"),
+                      ),
+                      DropdownMenuItem<CalendarSorting>(
+                        value: CalendarSorting.GROUP_BY_DATE,
+                        child: Text("jeder Tag einzeln"),
+                      ),
+                      DropdownMenuItem<CalendarSorting>(
+                        value: CalendarSorting.GROUP_BY_TYPE,
+                        child: Text("zusammengefasst"),
+                      ),
+                    ],
+                    onChanged: (sorting) {
+                      GetIt.instance.get<CalendarSettingsService>().setSorting(sorting);
+                    },
+                  )),
+            ],
+          ),
+          Row(
+            children: [
+              Padding(
+                padding: EdgeInsets.fromLTRB(16, 4, 16, 0),
+                child: Text("Datumsformat:"),
+              ),
+              Padding(
+                  padding: EdgeInsets.fromLTRB(0, 4, 16, 0),
+                  child: DropdownButton<CalendarDateFormat>(
+                    value: _selectedDateFormat,
+                    items: [
+                      DropdownMenuItem<CalendarDateFormat>(
+                        value: CalendarDateFormat.WEEKDAY_AND_DATE,
+                        child: Text("Wochentag, Datum"),
+                      ),
+                      DropdownMenuItem<CalendarDateFormat>(
+                        value: CalendarDateFormat.WEEKDAY,
+                        child: Text("nur Wochentag"),
+                      ),
+                      DropdownMenuItem<CalendarDateFormat>(
+                        value: CalendarDateFormat.DATE,
+                        child: Text("nur Datum"),
+                      ),
+                    ],
+                    onChanged: (dateFormat) {
+                      GetIt.instance.get<CalendarSettingsService>().setCalendarDateFormat(dateFormat);
+                    },
+                  )),
+            ],
           ),
         ],
       ),
