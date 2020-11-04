@@ -25,6 +25,8 @@ dependencies:
     sdk: flutter
   get_it:
   shared_preferences:
+  flutter_native_splash:
+  flutter_launcher_icons:
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -48,6 +50,7 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - resources/
+    - resources/images/splash.png
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 
@@ -76,3 +79,12 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
+
+flutter_native_splash:
+  image: resources/images/splash.png
+  color: "f6ae40"
+
+flutter_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "resources/images/launch.png"

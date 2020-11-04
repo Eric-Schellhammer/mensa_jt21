@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'package:mensa_jt21/calendar/calendar_entry.dart';
 import 'package:mensa_jt21/calendar/calendar_service.dart';
@@ -22,6 +23,7 @@ class CalendarListScreenState extends State<CalendarListScreen> {
   static const MENU_UPDATE = 'Aktualisieren';
   static const MENU_SETTINGS = 'Einstellungen';
   static const MENU_DEBUG = 'Debug';
+  static const MENU_ABOUT = 'Über die App';
 
   List<CalendarEntry> _allEventsByDate = List();
   List<Widget> _displayedWidgets = List();
@@ -33,6 +35,8 @@ class CalendarListScreenState extends State<CalendarListScreen> {
   @override
   void initState() {
     super.initState();
+    Intl.defaultLocale = "de_DE";
+    initializeDateFormatting();
     final onlineService = GetIt.instance.get<OnlineService>();
     onlineService.registerModeListener((onlineMode) => _updateOnlineMode(onlineMode));
     onlineService.init();
@@ -95,6 +99,10 @@ class CalendarListScreenState extends State<CalendarListScreen> {
         child: Text(MENU_DEBUG),
       ));
     }
+    entries.add(PopupMenuItem(
+      value: MENU_ABOUT,
+      child: Text(MENU_ABOUT),
+    ));
     return entries;
   }
 
@@ -130,6 +138,45 @@ class CalendarListScreenState extends State<CalendarListScreen> {
       case MENU_DEBUG:
         Navigator.pushNamed(context, DebugScreen.routeName);
         break;
+      case MENU_ABOUT:
+        showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: Text("Über die App"),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Mensa Jahrestreffen \"21",
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    Text("Version 0.3, 04.11.2020"),
+                    Text(
+                      "Entwickler:",
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(16, 0, 0, 0),
+                      child: Column(
+                        children: [
+                          Text("Dr. Eric Schellhammer"),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                actions: [
+                  TextButton(
+                    child: Text("OK"),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  )
+                ],
+              );
+            });
     }
   }
 
@@ -257,6 +304,7 @@ class CalendarListScreenState extends State<CalendarListScreen> {
             _displayedWidgets.add(Padding(
               padding: EdgeInsets.fromLTRB(32, 32, 16, 16),
               child: Text(
+                // TODO initializeDatFormatting(locale)
                 DateFormat(_dateFormat.subtitleFormat).format(element.start),
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
               ),
