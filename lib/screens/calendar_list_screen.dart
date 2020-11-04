@@ -416,7 +416,15 @@ class CalendarListScreenState extends State<CalendarListScreen> {
         });
         break;
       case CalendarSorting.GROUP_BY_TYPE:
-        _displayedWidgets.add(Text("NO VALID SORTING"));
+        final Map<int, CalendarEntryGroup> entriesByType = Map();
+        _allEventsByDate.forEach((eventEntry) {
+          entriesByType.putIfAbsent(eventEntry.eventGroupId, () => CalendarEntryGroup()).entries.add(eventEntry);
+        });
+        final List<CalendarEntryGroup> groups = entriesByType.values.toList();
+        groups.sort();
+        groups.forEach((group) {
+          _displayedWidgets.add(CalendarGroupListWidget(group));
+        });
         break;
     }
   }

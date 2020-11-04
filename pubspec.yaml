@@ -27,6 +27,7 @@ dependencies:
   sqflite:
   path:
   shared_preferences:
+  flutter_html:
   flutter_native_splash:
   flutter_launcher_icons:
 

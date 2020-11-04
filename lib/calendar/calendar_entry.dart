@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_html/flutter_html.dart';
 import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
 import 'package:mensa_jt21/calendar/calendar_service.dart';
@@ -68,5 +69,42 @@ class CalendarListEntryWidget extends StatelessWidget {
                 ],
               ));
         }));
+  }
+}
+
+class CalendarEntryGroup implements Comparable<CalendarEntryGroup> {
+  final List<CalendarEntry> entries = List();
+
+  @override
+  int compareTo(CalendarEntryGroup other) {
+    return entries[0].name.compareTo(other.entries[0].name);
+  }
+}
+
+class CalendarGroupListWidget extends StatelessWidget {
+  final CalendarEntryGroup group;
+
+  const CalendarGroupListWidget(this.group);
+
+  @override
+  Widget build(BuildContext context) {
+    final CalendarEntry calendarEntry = group.entries[0];
+    return Padding(
+      padding: EdgeInsets.fromLTRB(16, 8, 16, 48),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(calendarEntry.eventGroupId.toString()),
+          Text(
+            calendarEntry.name,
+            softWrap: true,
+            style: TextStyle(fontWeight: FontWeight.bold).copyWith(fontSize: 20),
+          ),
+          Html(
+            data: calendarEntry.eventtext,
+          ),
+        ],
+      ),
+    );
   }
 }
