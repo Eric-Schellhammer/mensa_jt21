@@ -58,11 +58,13 @@ class CalendarSettingsService {
 
   void setSorting(CalendarSorting sorting) {
     _sorting = sorting;
+    _prefs.setString(_CALENDAR_SORTING, sorting.toString());
     _callListeners();
   }
 
   void setCalendarDateFormat(CalendarDateFormat format) {
     _dateFormat = format;
+    _prefs.setString(_CALENDAR_DATE_FORMAT, format.toString());
     _callListeners();
   }
 

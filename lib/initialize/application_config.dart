@@ -4,11 +4,13 @@ import 'package:mensa_jt21/calendar/calendar_service.dart';
 import 'package:mensa_jt21/calendar/calendar_settings_service.dart';
 import 'package:mensa_jt21/calendar/favorites_service.dart';
 import 'package:mensa_jt21/initialize/debug_settings.dart';
+import 'package:mensa_jt21/initialize/storage_service.dart';
 import 'package:mensa_jt21/online/online_calendar.dart';
 import 'package:mensa_jt21/online/online_service.dart';
 
 class Application extends InheritedWidget {
   Application({@required Widget child}) : super(child: child) {
+    GetIt.instance.registerSingleton<StorageService>(StorageService());
     GetIt.instance.registerSingleton<DebugSettings>(DebugSettings());
     GetIt.instance.registerSingleton<CalendarSettingsService>(CalendarSettingsService());
     GetIt.instance.registerSingleton<FavoritesService>(FavoritesService());

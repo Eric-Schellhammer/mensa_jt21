@@ -14,15 +14,14 @@ class FavoritesService {
         storedFavorites.forEach((favourite) {
           if (favourite != null) _favoriteEvents.add(int.parse(favourite));
         });
-        _listeners.forEach((listener) {
-          listener.call();
-        });
+        _callListeners();
       }
     });
   }
 
   void registerUpdateListener(Function runnable) {
     _listeners.add(runnable);
+    _callListeners();
   }
 
   bool isFavorite(int eventId) {
@@ -34,13 +33,13 @@ class FavoritesService {
       _favoriteEvents.remove(eventId);
     else
       _favoriteEvents.add(eventId);
+    _callListeners();
+    _prefs.setStringList(FAVORITES, _favoriteEvents.map((favorite) => favorite.toString()).toList());
+  }
+
+  void _callListeners() {
     _listeners.forEach((listener) {
       listener.call();
     });
-    _prefs.setStringList(
-        FAVORITES,
-        _favoriteEvents.map((favorite) {
-          favorite.toString();
-        }).toList());
   }
 }

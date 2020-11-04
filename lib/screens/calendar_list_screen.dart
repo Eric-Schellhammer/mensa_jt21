@@ -7,6 +7,7 @@ import 'package:mensa_jt21/calendar/calendar_service.dart';
 import 'package:mensa_jt21/calendar/calendar_settings_service.dart';
 import 'package:mensa_jt21/calendar/favorites_service.dart';
 import 'package:mensa_jt21/initialize/debug_settings.dart';
+import 'package:mensa_jt21/initialize/storage_service.dart';
 import 'package:mensa_jt21/online/online_service.dart';
 import 'package:mensa_jt21/screens/debug_screen.dart';
 import 'package:mensa_jt21/screens/settings_screen.dart';

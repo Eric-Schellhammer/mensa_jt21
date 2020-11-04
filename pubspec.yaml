@@ -24,6 +24,8 @@ dependencies:
   flutter:
     sdk: flutter
   get_it:
+  sqflite:
+  path:
   shared_preferences:
   flutter_native_splash:
   flutter_launcher_icons:
