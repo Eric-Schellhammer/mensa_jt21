@@ -1,6 +1,6 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
-enum CalendarSorting { ALL_BY_DATE, GROUP_BY_DATE, GROUP_BY_TYPE }
+enum CalendarSorting { EMPTY, ALL_BY_DATE, GROUP_BY_DATE, GROUP_BY_TYPE }
 
 enum CalendarDateFormat { DATE, WEEKDAY, WEEKDAY_AND_DATE }
 
@@ -36,7 +36,7 @@ class CalendarSettingsService {
   static const String _CALENDAR_DATE_FORMAT = "calendarDateFormat";
 
   final List<Function(CalendarSorting, CalendarDateFormat)> _listeners = List();
-  CalendarSorting _sorting = CalendarSorting.GROUP_BY_DATE;
+  CalendarSorting _sorting = CalendarSorting.EMPTY;
   CalendarDateFormat _dateFormat = CalendarDateFormat.WEEKDAY_AND_DATE;
 
   SharedPreferences _prefs;

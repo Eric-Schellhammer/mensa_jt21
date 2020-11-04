@@ -7,7 +7,6 @@ import 'package:mensa_jt21/calendar/calendar_service.dart';
 import 'package:mensa_jt21/calendar/calendar_settings_service.dart';
 import 'package:mensa_jt21/calendar/favorites_service.dart';
 import 'package:mensa_jt21/initialize/debug_settings.dart';
-import 'package:mensa_jt21/initialize/storage_service.dart';
 import 'package:mensa_jt21/online/online_service.dart';
 import 'package:mensa_jt21/screens/debug_screen.dart';
 import 'package:mensa_jt21/screens/settings_screen.dart';
@@ -28,7 +27,9 @@ class CalendarListScreenState extends State<CalendarListScreen> {
 
   List<CalendarEntry> _allEventsByDate = List();
   List<Widget> _displayedWidgets = List();
-  CalendarSorting _sorting;
+  CalendarSorting _sorting = CalendarSorting.EMPTY;
+  DateTime _selectedDate;
+  bool _onlyFavorites = false;
   CalendarDateFormat _dateFormat;
   OnlineMode _onlineMode;
   bool _updateAvailable = false;
@@ -57,7 +58,7 @@ class CalendarListScreenState extends State<CalendarListScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Mensa JT21"),
-        leading: new Container(),
+        //leading: new Container(),
         actions: <Widget>[
           PopupMenuButton<String>(
             onSelected: _handleMenuClick,
@@ -67,6 +68,7 @@ class CalendarListScreenState extends State<CalendarListScreen> {
           ),
         ],
       ),
+      drawer: _buildDrawer(),
       body: _buildList(),
     );
   }
@@ -255,30 +257,107 @@ class CalendarListScreenState extends State<CalendarListScreen> {
     );
   }
 
+  Drawer _buildDrawer() {
+    final List<Widget> drawerEntries = List();
+    drawerEntries.add(
+      DrawerHeader(
+        child: Text(
+          'Navigation',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        decoration: BoxDecoration(
+          color: Colors.amberAccent,
+        ),
+      ),
+    );
+    switch (_sorting) {
+      case CalendarSorting.EMPTY:
+      case CalendarSorting.ALL_BY_DATE:
+      case CalendarSorting.GROUP_BY_TYPE:
+        drawerEntries.add(
+          ListTile(
+            title: Text('Veranstaltungskalender'),
+            onTap: () {
+              _updateStateAndRefreshList(() {
+                _onlyFavorites = false;
+              });
+              Navigator.pop(context);
+            },
+          ),
+        );
+        break;
+      case CalendarSorting.GROUP_BY_DATE:
+        drawerEntries.add(
+          ListTile(
+            title: Text(
+              'Veranstaltungskalender',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            onTap: null,
+          ),
+        );
+        final List<DateTime> allDates = _allEventsByDate.map((eventEntry) => _getDate(eventEntry.start)).toSet().toList();
+        allDates.sort();
+        allDates.forEach((date) {
+          drawerEntries.add(
+            Padding(
+                padding: EdgeInsets.fromLTRB(32, 0, 0, 0),
+                child: ListTile(
+                    title: Text(DateFormat(_dateFormat.subtitleFormat).format(date)),
+                    onTap: () {
+                      _updateStateAndRefreshList(() {
+                        _selectedDate = date;
+                        _onlyFavorites = false;
+                      });
+                      Navigator.pop(context);
+                    })),
+          );
+        });
+        break;
+    }
+    drawerEntries.add(
+      ListTile(
+        title: Text('Favoriten'),
+        onTap: () {
+          _updateStateAndRefreshList(() {
+            _onlyFavorites = true;
+          });
+          Navigator.pop(context);
+        },
+      ),
+    );
+    return Drawer(
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: drawerEntries,
+      ),
+    );
+  }
+
   void _updateCalendarEntries(List<CalendarEntry> calendar) {
-    if (mounted)
-      setState(() {
-        _allEventsByDate = calendar;
-        _updateAvailable = false;
-        _transferEventsToWidgets();
-      });
-    else {
+    _updateStateAndRefreshList(() {
       _allEventsByDate = calendar;
       _updateAvailable = false;
-      _transferEventsToWidgets();
-    }
+    });
   }
 
   void _updateCalendarSettings(CalendarSorting sorting, CalendarDateFormat dateFormat) {
+    _updateStateAndRefreshList(() {
+      _sorting = sorting;
+      _dateFormat = dateFormat;
+    });
+  }
+
+  void _updateStateAndRefreshList(Function() runnable) {
     if (mounted)
       setState(() {
-        _sorting = sorting;
-        _dateFormat = dateFormat;
+        runnable.call();
         _transferEventsToWidgets();
       });
     else {
-      _sorting = sorting;
-      _dateFormat = dateFormat;
+      runnable.call();
       _transferEventsToWidgets();
     }
   }
@@ -295,31 +374,61 @@ class CalendarListScreenState extends State<CalendarListScreen> {
   void _transferEventsToWidgets() {
     final favoritesService = GetIt.instance.get<FavoritesService>();
     _displayedWidgets = List();
-    switch (_sorting) {
+    if (_allEventsByDate == null || _allEventsByDate.isEmpty) return;
+    final effSorting = _onlyFavorites ? CalendarSorting.ALL_BY_DATE : _sorting;
+    final bool Function(CalendarEntry) filterByFavorites = _onlyFavorites ? (entry) => favoritesService.isFavorite(entry.eventId) : (__) => true;
+    switch (effSorting) {
+      case CalendarSorting.EMPTY:
+        break;
       case CalendarSorting.ALL_BY_DATE:
-        int lastDay;
-        _allEventsByDate.forEach((element) {
-          // TODO how to restrict DateTime to Date?
-          final int currentDay = element.start.year * 10000 + element.start.month * 100 + element.start.day;
+        DateTime lastDay;
+        _allEventsByDate.where(filterByFavorites).forEach((eventEntry) {
+          final DateTime currentDay = _getDate(eventEntry.start);
           if (lastDay == null || lastDay != currentDay) {
-            _displayedWidgets.add(Padding(
-              padding: EdgeInsets.fromLTRB(32, 32, 16, 16),
-              child: Text(
-                // TODO initializeDatFormatting(locale)
-                DateFormat(_dateFormat.subtitleFormat).format(element.start),
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-              ),
-            ));
+            _displayedWidgets.add(_createDateHeader(eventEntry.start));
             lastDay = currentDay;
           }
-          _displayedWidgets.add(new CalendarListEntryWidget(element, _dateFormat, favoritesService.isFavorite(element.eventId)));
+          _displayedWidgets.add(new CalendarListEntryWidget(eventEntry, _dateFormat, favoritesService.isFavorite(eventEntry.eventId)));
         });
+        if (_displayedWidgets.isEmpty && _onlyFavorites) {
+          _displayedWidgets.add(Padding(
+              padding: EdgeInsets.fromLTRB(0, 32, 0, 32),
+              child: Center(
+                  child: Text(
+                "Keine Favoriten ausgewählt",
+                style: TextStyle(fontWeight: FontWeight.bold).copyWith(fontSize: 20),
+              ))));
+          _displayedWidgets.add(TextButton(
+            onPressed: () => _updateStateAndRefreshList(() {
+              _onlyFavorites = false;
+            }),
+            child: Center(child: Text("OK")),
+          ));
+        }
         break;
       case CalendarSorting.GROUP_BY_DATE:
+        if (_selectedDate == null) {
+          _selectedDate = _getDate(_allEventsByDate[0].start);
+        }
+        _displayedWidgets.add(_createDateHeader(_selectedDate));
+        _allEventsByDate.where((eventEntry) => _getDate(eventEntry.start) == _selectedDate).forEach((eventEntry) {
+          _displayedWidgets.add(new CalendarListEntryWidget(eventEntry, _dateFormat, favoritesService.isFavorite(eventEntry.eventId)));
+        });
+        break;
       case CalendarSorting.GROUP_BY_TYPE:
         _displayedWidgets.add(Text("NO VALID SORTING"));
         break;
     }
+  }
+
+  Widget _createDateHeader(DateTime date) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(32, 32, 16, 16),
+      child: Text(
+        DateFormat(_dateFormat.subtitleFormat).format(date),
+        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+      ),
+    );
   }
 
   void _updateOnlineMode(OnlineMode onlineMode) {
@@ -330,5 +439,9 @@ class CalendarListScreenState extends State<CalendarListScreen> {
     else {
       _onlineMode = onlineMode;
     }
+  }
+
+  DateTime _getDate(DateTime dateTime) {
+    return DateTime.parse(DateFormat("yyyyMMdd").format(dateTime));
   }
 }
