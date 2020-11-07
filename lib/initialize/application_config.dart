@@ -43,6 +43,7 @@ class _OnlineCalendarWithDebug implements OnlineCalendar {
   }
 
   Future<String> getCalendarJson() {
+    if (debugSettings.simulatedCalendar != null) return Future.value(debugSettings.simulatedCalendar);
     return proxy.getCalendarJson();
   }
 }

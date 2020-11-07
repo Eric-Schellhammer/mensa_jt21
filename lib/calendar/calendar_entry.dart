@@ -35,15 +35,7 @@ class CalendarListEntryWidget extends StatelessWidget {
                     children: [
                       Padding(
                         padding: EdgeInsets.fromLTRB(0, 8, 8, 8),
-                        child: IconButton(
-                          icon: Icon(
-                            Icons.favorite,
-                            color: isFavorite ? Colors.pink : Colors.grey[200],
-                          ),
-                          onPressed: () {
-                            GetIt.instance.get<FavoritesService>().toggleFavorite(calendarEntry.eventId);
-                          },
-                        ),
+                        child: _getIconButton(calendarEntry),
                       ),
                       Expanded(
                         child: Column(
@@ -69,6 +61,30 @@ class CalendarListEntryWidget extends StatelessWidget {
                 ],
               ));
         }));
+  }
+
+  Widget _getIconButton(CalendarEntry calendarEntry) {
+    return calendarEntry.takesPlace
+        ? IconButton(
+            icon: Icon(
+              Icons.favorite,
+              color: isFavorite ? Colors.pink : Colors.grey[200],
+            ),
+            onPressed: () {
+              GetIt.instance.get<FavoritesService>().toggleFavorite(calendarEntry.eventId);
+            },
+          )
+        : IconButton(
+            icon: Icon(
+              Icons.block,
+              color: isFavorite ? Colors.pink : Colors.grey.withOpacity(0),
+            ),
+            onPressed: isFavorite
+                ? () {
+                    GetIt.instance.get<FavoritesService>().toggleFavorite(calendarEntry.eventId);
+                  }
+                : null,
+          );
   }
 }
 

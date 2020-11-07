@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
@@ -12,8 +15,19 @@ class DebugScreen extends StatefulWidget {
 }
 
 class DebugScreenState extends State<DebugScreen> {
-
   final DebugSettings debugSettings = GetIt.instance.get<DebugSettings>();
+  final TextEditingController cancelEventController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    cancelEventController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,15 +37,25 @@ class DebugScreenState extends State<DebugScreen> {
         ),
         body: Column(
           children: [
-            FlatButton(
-                child: Text("Simuliere neue Version auf Server"),
-                onPressed: () {
-                  setState(() {
-                    debugSettings.simulatedCalendarUpdate = "{\"date\":\"" + DateFormat("yyyy-MM-dd HH:mm:ss").format(DateTime.now()) + "\"}";
-                  });
-                }),
+            Row(children: [
+              Text("Simuliere: Veranstaltung nr "),
+              SizedBox(
+                width: 50,
+                child: TextField(
+                  controller: cancelEventController,
+                ),
+              ),
+              RaisedButton(
+                  child: Text("absagen"),
+                  onPressed: () {
+                    setState(() {
+                      _cancelEvent();
+                      debugSettings.simulatedCalendarUpdate = "{\"date\":\"" + DateFormat("yyyy-MM-dd HH:mm:ss").format(DateTime.now()) + "\"}";
+                    });
+                  }),
+            ]),
             Text(debugSettings.simulatedCalendarUpdate ?? ""),
-            FlatButton(
+            RaisedButton(
               child: Text("Simulation zurücksetzen"),
               onPressed: debugSettings.simulatedCalendarUpdate == null
                   ? null
@@ -39,10 +63,27 @@ class DebugScreenState extends State<DebugScreen> {
                       GetIt.instance.get<CalendarService>().loadDefaultCalendarFile();
                       setState(() {
                         debugSettings.simulatedCalendarUpdate = null;
+                        debugSettings.simulatedCalendar = null;
                       });
                     },
             )
           ],
         ));
+  }
+
+  void _cancelEvent() {
+    final String eventId = cancelEventController.text;
+    final String jsonString = GetIt.instance.get<CalendarService>().getRawCalendarJson();
+    cancelEventController.clear();
+
+    final jsonEntries = JsonDecoder().convert(jsonString);
+    if (jsonEntries != null) {
+      jsonEntries.forEach((jsonElement) {
+        final Map<String, dynamic> json = jsonElement;
+        if (json["t_ID"] == eventId)
+          json["abgesagt"] = "1";
+      });
+    }
+    debugSettings.simulatedCalendar = JsonEncoder().convert(jsonEntries);
   }
 }

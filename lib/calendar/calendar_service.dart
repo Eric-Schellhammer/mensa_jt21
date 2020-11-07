@@ -82,6 +82,10 @@ class CalendarService {
     }
     return entries;
   }
+
+  String getRawCalendarJson() {
+    return _prefs.getString(_CALENDAR_ENTRIES);
+  }
 }
 
 class CalendarEntry implements Comparable<CalendarEntry> {
@@ -159,6 +163,10 @@ class CalendarEntry implements Comparable<CalendarEntry> {
         bildtitel: json["bildtitel"],
         barrierefreiheit: json["barrierefreiheit"],
         haltestelle: json["haltestelle"]);
+  }
+
+  bool get takesPlace {
+    return !abgesagt;
   }
 
   @override

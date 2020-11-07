@@ -1,0 +1,45 @@
+MERGE REQUESTED
+
+
+
+
+TO DO
+
+
+Toast when element from Favorites is deleted
+	undo if not cancelled
+
+Static informations page
+
+Rework Grouping
+	Header (which information?)
+	below: all dates, with favorite icon
+	if one is cancelled, cross out this date
+	if all are cancelled, cross out header too
+
+Add details page
+	picture, load from https://event-orga.mensa.de/getImage.php?h=300&jt=jt2021&name=e006_Schloss-Ludwigsburg_1.jpg
+	details (which details?)
+
+make showing IDs in list depend on debug flag
+
+include picture in list entry
+
+icon in drawer header
+
+make sure nothing is loaded via HTML when offline
+
+add staitc flag "debug mode available"
+
+switch debug mode off/on and store
+
+when first opening, ask for online mode
+
+debug option: reset to first installation
+
+automatic reload
+
+reload when automatic reload is set when leaving debug screen
+
+set "favorite-cancelled" icon to broken heart
+
