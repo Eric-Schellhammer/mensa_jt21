@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:mensa_jt21/calendar/calendar_service.dart';
 import 'package:mensa_jt21/calendar/favorites_service.dart';
 import 'package:mensa_jt21/initialize/debug_settings.dart';
+import 'package:mensa_jt21/online/online_service.dart';
 
 class DebugScreen extends StatefulWidget {
   static const routeName = "/debug_screen";
@@ -52,6 +53,7 @@ class DebugScreenState extends State<DebugScreen> {
                     setState(() {
                       _cancelEvent();
                       debugSettings.simulatedCalendarUpdate = "{\"date\":\"" + DateFormat("yyyy-MM-dd HH:mm:ss").format(DateTime.now()) + "\"}";
+                      GetIt.instance.get<OnlineService>().performAutomaticPollingIfActive();
                     });
                   }),
             ]),

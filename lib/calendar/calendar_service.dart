@@ -14,7 +14,8 @@ class CalendarService {
   SharedPreferences _prefs;
   List<CalendarEntry> _calendarEntries;
   DateTime _calendarDate;
-  Function(List<CalendarEntry>) _listener;
+  Function(bool) _updateAvailableListener;
+  Function(List<CalendarEntry>) _calendarListener;
 
   void initializeWithLocalFile() {
     loadDefaultCalendarFile();
@@ -24,9 +25,14 @@ class CalendarService {
     });
   }
 
-  void registerUpdateListener(Function(List<CalendarEntry>) listener) {
-    this._listener = listener;
-    if (_calendarEntries != null) _listener.call(_calendarEntries);
+  void registerUpdateAvailableListener(Function(bool) listener) {
+    _updateAvailableListener = listener;
+    // do not call listener immediately
+  }
+
+  void registerCalendarListener(Function(List<CalendarEntry>) listener) {
+    _calendarListener = listener;
+    if (_calendarEntries != null) _calendarListener.call(_calendarEntries);
   }
 
   /// Check online if an update of the calendar is available, and return the result into the receiver
@@ -39,8 +45,13 @@ class CalendarService {
         .then((isAvailable) => receiver.call(isAvailable));
   }
 
+  void checkIfUpdateAvailable() {
+    if (_updateAvailableListener != null)
+      isUpdateAvailable(_updateAvailableListener);
+  }
+
   /// Check online if an update of the calendar is available and if so, load it
-  void checkForUpdate() {
+  void checkForUpdateAndLoad() {
     final onlineCalendar = GetIt.instance.get<OnlineCalendar>();
     onlineCalendar.getCalendarDateJson().then((remoteCalendarDateJson) {
       final DateTime remoteCalendarDate = _convertDate(remoteCalendarDateJson);
@@ -65,7 +76,7 @@ class CalendarService {
   }
 
   void _callListener() {
-    if (_listener != null) _listener.call(_calendarEntries);
+    if (_calendarListener != null) _calendarListener.call(_calendarEntries);
   }
 
   DateTime _convertDate(String jsonString) {

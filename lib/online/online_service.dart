@@ -1,3 +1,5 @@
+import 'package:get_it/get_it.dart';
+import 'package:mensa_jt21/calendar/calendar_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 enum OnlineMode {
@@ -50,5 +52,19 @@ class OnlineService {
         return "Die App geht von Zeit zu Zeit online, um zu prüfen, ob Aktualisierungen vorliegen, und wird diese automatisch herunterladen. Dies ist die maximale Automatisierung; sie verbraucht allerdings auch am meisten mobile Daten.";
     }
     return "";
+  }
+  
+  void performAutomaticPollingIfActive() {
+    switch (_mode) {
+      case OnlineMode.AUTOMATIC:
+        GetIt.instance.get<CalendarService>().checkIfUpdateAvailable();
+        break;
+      case OnlineMode.ONLINE:
+        GetIt.instance.get<CalendarService>().checkForUpdateAndLoad();
+        break;
+      default:
+        // do nothing in other cases
+        break;
+    }
   }
 }

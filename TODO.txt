@@ -1,9 +1,3 @@
-MERGE REQUESTED
-
-
-
-
-TO DO
 
 
 Toast when element from Favorites is deleted
@@ -21,8 +15,6 @@ Add details page
 	picture, load from https://event-orga.mensa.de/getImage.php?h=300&jt=jt2021&name=e006_Schloss-Ludwigsburg_1.jpg
 	details (which details?)
 
-make showing IDs in list depend on debug flag
-
 include picture in list entry
 
 icon in drawer header
@@ -34,6 +26,4 @@ when first opening, ask for online mode
 debug option: reset to first installation
 
 automatic reload
-
-reload when automatic reload is set when leaving debug screen
 

@@ -46,7 +46,8 @@ class CalendarListScreenState extends State<CalendarListScreen> {
     calendarSettingsService.registerListener((sorting, dateFormat) => _updateCalendarSettings(sorting, dateFormat));
     calendarSettingsService.initialize();
     final calendarService = GetIt.instance.get<CalendarService>();
-    calendarService.registerUpdateListener((calendar) => _updateCalendarEntries(calendar));
+    calendarService.registerUpdateAvailableListener((isAvailable) => _updateUpdateAvailable(isAvailable));
+    calendarService.registerCalendarListener((calendar) => _updateCalendarEntries(calendar));
     calendarService.initializeWithLocalFile();
     final favoritesService = GetIt.instance.get<FavoritesService>();
     favoritesService.registerUpdateListener(() => _refreshList());
@@ -115,7 +116,7 @@ class CalendarListScreenState extends State<CalendarListScreen> {
         _handleMenuCheckForUpdates();
         break;
       case MENU_UPDATE:
-        GetIt.instance.get<CalendarService>().checkForUpdate();
+        GetIt.instance.get<CalendarService>().checkForUpdateAndLoad();
         setState(() {
           _updateAvailable = false;
         });
@@ -205,7 +206,7 @@ class CalendarListScreenState extends State<CalendarListScreen> {
                     TextButton(
                       child: Text("Jetzt aktualisieren"),
                       onPressed: () {
-                        GetIt.instance.get<CalendarService>().checkForUpdate();
+                        GetIt.instance.get<CalendarService>().checkForUpdateAndLoad();
                         Navigator.of(context).pop();
                       },
                     ),
@@ -222,7 +223,7 @@ class CalendarListScreenState extends State<CalendarListScreen> {
                 );
               });
         } else {
-          GetIt.instance.get<CalendarService>().checkForUpdate();
+          GetIt.instance.get<CalendarService>().checkForUpdateAndLoad();
           showDialog(
               context: context,
               builder: (BuildContext context) {
@@ -343,6 +344,12 @@ class CalendarListScreenState extends State<CalendarListScreen> {
         children: drawerEntries,
       ),
     );
+  }
+
+  void _updateUpdateAvailable(bool isAvailable) {
+    _updateStateAndRefreshList(() {
+      _updateAvailable = isAvailable;
+    });
   }
 
   void _updateCalendarEntries(List<CalendarEntry> calendar) {
