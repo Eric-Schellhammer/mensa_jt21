@@ -96,7 +96,7 @@ class CalendarListScreenState extends State<CalendarListScreen> {
       value: MENU_SETTINGS,
       child: Text(MENU_SETTINGS),
     ));
-    if (GetIt.instance.get<DebugSettings>().activateDebugMode) {
+    if (GetIt.instance.get<DebugSettings>().isDebugModeActive()) {
       entries.add(PopupMenuItem(
         value: MENU_DEBUG,
         child: Text(MENU_DEBUG),
@@ -176,6 +176,15 @@ class CalendarListScreenState extends State<CalendarListScreen> {
                     onPressed: () {
                       Navigator.of(context).pop();
                     },
+                    onLongPress: DebugSettings.debugModeAvailable
+                        ? () {
+                            setState(() {
+                              GetIt.instance.get<DebugSettings>().activateDebugMode = true;
+                              _transferEventsToWidgets();
+                              Navigator.of(context).pop();
+                            });
+                          }
+                        : null,
                   )
                 ],
               );
@@ -372,6 +381,7 @@ class CalendarListScreenState extends State<CalendarListScreen> {
   }
 
   void _transferEventsToWidgets() {
+    CalendarListEntryWidget.isDebugModeActive = GetIt.instance.get<DebugSettings>().isDebugModeActive();
     final favoritesService = GetIt.instance.get<FavoritesService>();
     _displayedWidgets = List();
     if (_allEventsByDate == null || _allEventsByDate.isEmpty) return;

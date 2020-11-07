@@ -29,8 +29,6 @@ icon in drawer header
 
 make sure nothing is loaded via HTML when offline
 
-add staitc flag "debug mode available"
-
 switch debug mode off/on and store
 
 when first opening, ask for online mode
@@ -40,6 +38,4 @@ debug option: reset to first installation
 automatic reload
 
 reload when automatic reload is set when leaving debug screen
-
-set "favorite-cancelled" icon to broken heart
 

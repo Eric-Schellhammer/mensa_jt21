@@ -8,6 +8,8 @@ import 'package:mensa_jt21/calendar/calendar_settings_service.dart';
 import 'package:mensa_jt21/calendar/favorites_service.dart';
 
 class CalendarListEntryWidget extends StatelessWidget {
+  static bool isDebugModeActive;
+
   final CalendarEntry calendarEntry;
   final CalendarDateFormat calendarDateFormat;
   final bool isFavorite;
@@ -40,20 +42,7 @@ class CalendarListEntryWidget extends StatelessWidget {
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(calendarEntry.eventId.toString() + " (" + calendarEntry.eventGroupId.toString() + ")"),
-                            Text(
-                              calendarEntry.name,
-                              softWrap: true,
-                              style: Theme.of(context).textTheme.bodyText2.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                            ),
-                            Text(
-                              DateFormat(calendarDateFormat.startTimeFormat).format(calendarEntry.start),
-                              style: Theme.of(context).textTheme.bodyText2,
-                            ),
-                          ],
+                          children: _getEntryElements(context),
                         ),
                       ),
                     ],
@@ -61,6 +50,23 @@ class CalendarListEntryWidget extends StatelessWidget {
                 ],
               ));
         }));
+  }
+
+  List<Widget> _getEntryElements(BuildContext context) {
+    List<Widget> elements = List();
+    if (isDebugModeActive) elements.add(Text(calendarEntry.eventId.toString() + " (" + calendarEntry.eventGroupId.toString() + ")"));
+    elements.add(Text(
+      calendarEntry.name,
+      softWrap: true,
+      style: Theme.of(context).textTheme.bodyText2.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+    ));
+    elements.add(Text(
+      DateFormat(calendarDateFormat.startTimeFormat).format(calendarEntry.start),
+      style: Theme.of(context).textTheme.bodyText2,
+    ));
+    return elements;
   }
 
   Widget _getIconButton(CalendarEntry calendarEntry) {
@@ -76,8 +82,8 @@ class CalendarListEntryWidget extends StatelessWidget {
           )
         : IconButton(
             icon: Icon(
-              Icons.block,
-              color: isFavorite ? Colors.pink : Colors.grey.withOpacity(0),
+              IconData(0xf7a9, fontFamily: "CustomIcons", fontPackage: null),
+              color: isFavorite ? Colors.purple : Colors.grey.withOpacity(0),
             ),
             onPressed: isFavorite
                 ? () {

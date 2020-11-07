@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
 import 'package:mensa_jt21/calendar/calendar_service.dart';
+import 'package:mensa_jt21/calendar/favorites_service.dart';
 import 'package:mensa_jt21/initialize/debug_settings.dart';
 
 class DebugScreen extends StatefulWidget {
@@ -66,7 +67,18 @@ class DebugScreenState extends State<DebugScreen> {
                         debugSettings.simulatedCalendar = null;
                       });
                     },
-            )
+            ),
+            RaisedButton(
+              child: Text("Debug-Mode ausschalten"),
+              onPressed: GetIt.instance.get<DebugSettings>().isDebugModeActive()
+                  ? () {
+                      setState(() {
+                        GetIt.instance.get<DebugSettings>().activateDebugMode = false;
+                        GetIt.instance.get<FavoritesService>().refreshList();
+                      });
+                    }
+                  : null,
+            ),
           ],
         ));
   }
@@ -80,8 +92,7 @@ class DebugScreenState extends State<DebugScreen> {
     if (jsonEntries != null) {
       jsonEntries.forEach((jsonElement) {
         final Map<String, dynamic> json = jsonElement;
-        if (json["t_ID"] == eventId)
-          json["abgesagt"] = "1";
+        if (json["t_ID"] == eventId) json["abgesagt"] = "1";
       });
     }
     debugSettings.simulatedCalendar = JsonEncoder().convert(jsonEntries);
