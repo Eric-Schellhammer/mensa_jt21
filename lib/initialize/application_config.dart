@@ -22,7 +22,7 @@ class Application extends InheritedWidget {
   OnlineCalendar _getOnlineCalendarImpl() {
     final debugSettings = GetIt.instance.get<DebugSettings>();
     final impl = OnlineCalendarImpl();
-    return debugSettings.activateDebugMode ? _OnlineCalendarWithDebug(debugSettings, impl) : impl;
+    return DebugSettings.debugModeAvailable ? _OnlineCalendarWithDebug(debugSettings, impl) : impl;
   }
 
   @override
@@ -38,12 +38,12 @@ class _OnlineCalendarWithDebug implements OnlineCalendar {
   _OnlineCalendarWithDebug(this.debugSettings, this.proxy);
 
   Future<String> getCalendarDateJson() {
-    if (debugSettings.simulatedCalendarUpdate != null) return Future.value(debugSettings.simulatedCalendarUpdate);
+    if (debugSettings.isDebugModeActive() && debugSettings.simulatedCalendarUpdate != null) return Future.value(debugSettings.simulatedCalendarUpdate);
     return proxy.getCalendarDateJson();
   }
 
   Future<String> getCalendarJson() {
-    if (debugSettings.simulatedCalendar != null) return Future.value(debugSettings.simulatedCalendar);
+    if (debugSettings.isDebugModeActive() && debugSettings.simulatedCalendar != null) return Future.value(debugSettings.simulatedCalendar);
     return proxy.getCalendarJson();
   }
 }

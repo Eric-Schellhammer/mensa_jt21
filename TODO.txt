@@ -29,8 +29,6 @@ icon in drawer header
 
 make sure nothing is loaded via HTML when offline
 
-switch debug mode off/on and store
-
 when first opening, ask for online mode
 
 debug option: reset to first installation

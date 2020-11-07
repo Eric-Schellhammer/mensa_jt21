@@ -61,11 +61,11 @@ class DebugScreenState extends State<DebugScreen> {
               onPressed: debugSettings.simulatedCalendarUpdate == null
                   ? null
                   : () {
-                      GetIt.instance.get<CalendarService>().loadDefaultCalendarFile();
                       setState(() {
                         debugSettings.simulatedCalendarUpdate = null;
                         debugSettings.simulatedCalendar = null;
                       });
+                      GetIt.instance.get<CalendarService>().loadDefaultCalendarFile();
                     },
             ),
             RaisedButton(

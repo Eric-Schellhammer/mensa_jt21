@@ -8,6 +8,9 @@ import 'package:mensa_jt21/calendar/calendar_settings_service.dart';
 import 'package:mensa_jt21/calendar/favorites_service.dart';
 
 class CalendarListEntryWidget extends StatelessWidget {
+
+  static const brokenHeart = IconData(0xf7a9, fontFamily: "CustomIcons", fontPackage: null);
+
   static bool isDebugModeActive;
 
   final CalendarEntry calendarEntry;
@@ -82,7 +85,7 @@ class CalendarListEntryWidget extends StatelessWidget {
           )
         : IconButton(
             icon: Icon(
-              IconData(0xf7a9, fontFamily: "CustomIcons", fontPackage: null),
+              brokenHeart,
               color: isFavorite ? Colors.purple : Colors.grey.withOpacity(0),
             ),
             onPressed: isFavorite

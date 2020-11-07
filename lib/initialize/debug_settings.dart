@@ -1,12 +1,16 @@
 class DebugSettings {
 
-  static bool debugModeAvailable = true;
+  static const bool debugModeAvailable = true;
 
-  bool activateDebugMode = true;
+  bool _isDebugModeActive = false;
   String simulatedCalendarUpdate;
   String simulatedCalendar;
 
+  set activateDebugMode(bool setActive) {
+    _isDebugModeActive = setActive;
+  }
+
   bool isDebugModeActive() {
-    return debugModeAvailable && activateDebugMode;
+    return debugModeAvailable && _isDebugModeActive;
   }
 }
