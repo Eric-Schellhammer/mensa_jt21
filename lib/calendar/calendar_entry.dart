@@ -1,17 +1,15 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
-import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
 import 'package:mensa_jt21/calendar/calendar_service.dart';
 import 'package:mensa_jt21/calendar/calendar_settings_service.dart';
-import 'package:mensa_jt21/calendar/favorites_service.dart';
 
 class CalendarListEntryWidget extends StatelessWidget {
-
   static const brokenHeart = IconData(0xf7a9, fontFamily: "CustomIcons", fontPackage: null);
 
   static bool isDebugModeActive;
+  static Function(BuildContext, CalendarEntry) toggleFavoriteState;
 
   final CalendarEntry calendarEntry;
   final CalendarDateFormat calendarDateFormat;
@@ -40,7 +38,7 @@ class CalendarListEntryWidget extends StatelessWidget {
                     children: [
                       Padding(
                         padding: EdgeInsets.fromLTRB(0, 8, 8, 8),
-                        child: _getIconButton(calendarEntry),
+                        child: _getIconButton(context, calendarEntry),
                       ),
                       Expanded(
                         child: Column(
@@ -72,7 +70,7 @@ class CalendarListEntryWidget extends StatelessWidget {
     return elements;
   }
 
-  Widget _getIconButton(CalendarEntry calendarEntry) {
+  Widget _getIconButton(BuildContext context, CalendarEntry calendarEntry) {
     return calendarEntry.takesPlace
         ? IconButton(
             icon: Icon(
@@ -80,7 +78,7 @@ class CalendarListEntryWidget extends StatelessWidget {
               color: isFavorite ? Colors.pink : Colors.grey[200],
             ),
             onPressed: () {
-              GetIt.instance.get<FavoritesService>().toggleFavorite(calendarEntry.eventId);
+              toggleFavoriteState.call(context, calendarEntry);
             },
           )
         : IconButton(
@@ -90,7 +88,7 @@ class CalendarListEntryWidget extends StatelessWidget {
             ),
             onPressed: isFavorite
                 ? () {
-                    GetIt.instance.get<FavoritesService>().toggleFavorite(calendarEntry.eventId);
+                    toggleFavoriteState.call(context, calendarEntry);
                   }
                 : null,
           );

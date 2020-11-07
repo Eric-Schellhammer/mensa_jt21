@@ -28,13 +28,19 @@ class FavoritesService {
     return _favoriteEvents.contains(eventId);
   }
 
-  void toggleFavorite(int eventId) {
-    if (_favoriteEvents.contains(eventId))
+  /// toggle the state, return the new state
+  bool toggleFavorite(int eventId) {
+    bool result;
+    if (_favoriteEvents.contains(eventId)) {
       _favoriteEvents.remove(eventId);
-    else
+      result = false;
+    } else {
       _favoriteEvents.add(eventId);
+      result = true;
+    }
     _callListeners();
     _prefs.setStringList(FAVORITES, _favoriteEvents.map((favorite) => favorite.toString()).toList());
+    return result;
   }
 
   void _callListeners() {

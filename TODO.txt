@@ -1,29 +1,26 @@
 
 
-Toast when element from Favorites is deleted
-	undo if not cancelled
-
-Static informations page
-
 Rework Grouping
 	Header (which information?)
 	below: all dates, with favorite icon
 	if one is cancelled, cross out this date
 	if all are cancelled, cross out header too
 
+when first opening, ask for online mode
+
+debug option: reset to first installation
+
+Static informations page
+
 Add details page
 	picture, load from https://event-orga.mensa.de/getImage.php?h=300&jt=jt2021&name=e006_Schloss-Ludwigsburg_1.jpg
 	details (which details?)
 
+make sure nothing is loaded via HTML when offline
+
 include picture in list entry
 
 icon in drawer header
-
-make sure nothing is loaded via HTML when offline
-
-when first opening, ask for online mode
-
-debug option: reset to first installation
 
 automatic reload
 
