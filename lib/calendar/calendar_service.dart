@@ -104,7 +104,7 @@ class CalendarEntry implements Comparable<CalendarEntry> {
   final int eventId;
   final String name;
   final String kategorie;
-  final String dauer;
+  final int dauer;
   final DateTime start;
   final String anbieter;
   final String location;
@@ -155,7 +155,7 @@ class CalendarEntry implements Comparable<CalendarEntry> {
         eventId: int.parse(json["t_ID"]),
         name: json["name"],
         kategorie: json["kategorie"],
-        dauer: json["dauer"],
+        dauer: int.parse(json["dauer"]),
         start: DateTime.parse(json["start"]),
         anbieter: json["anbieter"],
         location: json["location"],

@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:get_it/get_it.dart';
@@ -61,21 +62,52 @@ class CalendarDetailsScreen extends StatelessWidget {
 
   List<Widget> _getGeneral() {
     List<Widget> entries = List();
-    entries.add(Text("Kategorie: " + calendarEntry.kategorie));
-    entries.add(Text("Anbieter: " + calendarEntry.anbieter));
-    entries.add(Text("Dauer: " + calendarEntry.dauer));
-    entries.add(Text("Location: " + calendarEntry.location));
-    entries.add(Text("Strasse: " + calendarEntry.strasse));
-    entries.add(Text("PLZ: " + calendarEntry.plz));
-    entries.add(Text("Ortsname: " + calendarEntry.ortsname));
-    entries.add(Text("Gebäude: " + calendarEntry.gebaeude));
-    entries.add(Text("Raum: " + calendarEntry.raum));
-    entries.add(Text("LAT: " + calendarEntry.lat));
-    entries.add(Text("LON: " + calendarEntry.lon));
-    entries.add(Text("Wordpress: " + calendarEntry.wordpress));
-    entries.add(Text("Barrierefreiheit: " + calendarEntry.barrierefreiheit));
-    entries.add(Text("Haltestelle: " + calendarEntry.haltestelle));
+    _addIfNotNull(entries, "Kategorie", calendarEntry.kategorie);
+    _addIfNotNull(entries, "Anbieter", calendarEntry.anbieter);
+    if (calendarEntry.dauer != null) {
+      entries.add(_getTitleAndElement("Dauer", Text(calendarEntry.dauer.toString() + " Minuten")));
+    }
+    entries.add(_getTitleAndElement(
+      "Ort",
+      Expanded(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(calendarEntry.location ?? ""),
+            Text(calendarEntry.strasse ?? ""),
+            Text((calendarEntry.plz ?? "") + " " + (calendarEntry.ortsname ?? "")),
+          ],
+        ),
+      ),
+    ));
+    _addIfNotNull(entries, "Gebäude", calendarEntry.gebaeude);
+    _addIfNotNull(entries, "Raum", calendarEntry.raum);
+    _addIfNotNull(entries, "Wordpress", calendarEntry.wordpress);
+    _addIfNotNull(entries, "Barrierefreiheit", calendarEntry.barrierefreiheit);
+    _addIfNotNull(entries, "Haltestelle", calendarEntry.haltestelle);
+    if (calendarEntry.lat != null && double.parse(calendarEntry.lat) != 0)
+      entries.add(_getTitleAndElement("Koordinaten", Text("N" + calendarEntry.lat + "° E" + calendarEntry.lon + "°")));
     return entries;
+  }
+
+  void _addIfNotNull(List<Widget> entries, String title, String value) {
+    if (value != null && value.isNotEmpty)
+      entries.add(
+        _getTitleAndElement(title, Expanded(child: Text(value))),
+      );
+  }
+
+  Widget _getTitleAndElement(String title, Widget value) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title + ": ",
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        value,
+      ],
+    );
   }
 
   List<Widget> _getSpecific() {

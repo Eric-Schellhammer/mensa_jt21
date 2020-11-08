@@ -14,8 +14,6 @@ Static informations page
 
 details page
 	picture, load from https://event-orga.mensa.de/getImage.php?h=300&jt=jt2021&name=e006_Schloss-Ludwigsburg_1.jpg
-	format location/street/etc
-	table view with bold label, omit empty entries
 	add list of dates, with favorite icon, like in Grouping view
 
 make sure nothing is loaded via HTML when offline
