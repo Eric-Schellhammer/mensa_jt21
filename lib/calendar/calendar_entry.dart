@@ -1,9 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_html/flutter_html.dart';
 import 'package:intl/intl.dart';
 import 'package:mensa_jt21/calendar/calendar_service.dart';
 import 'package:mensa_jt21/calendar/calendar_settings_service.dart';
+import 'package:mensa_jt21/screens/calendar_details_screen.dart';
 
 class CalendarListEntryWidget extends StatelessWidget {
   static const brokenHeart = IconData(0xf7a9, fontFamily: "CustomIcons", fontPackage: null);
@@ -41,9 +41,18 @@ class CalendarListEntryWidget extends StatelessWidget {
                         child: _getIconButton(context, calendarEntry),
                       ),
                       Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: _getEntryElements(context),
+                        child: GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => CalendarDetailsScreen(calendarEntry: calendarEntry),
+                                ));
+                          },
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: _getEntryElements(context),
+                          ),
                         ),
                       ),
                     ],
@@ -117,14 +126,10 @@ class CalendarGroupListWidget extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(calendarEntry.eventGroupId.toString()),
           Text(
             calendarEntry.name,
             softWrap: true,
             style: TextStyle(fontWeight: FontWeight.bold).copyWith(fontSize: 20),
-          ),
-          Html(
-            data: calendarEntry.eventtext,
           ),
         ],
       ),

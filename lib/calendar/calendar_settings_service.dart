@@ -68,6 +68,11 @@ class CalendarSettingsService {
     _callListeners();
   }
 
+  /// return the date format, but do not listen to changes of it
+  CalendarDateFormat getDateFormatOnce() {
+    return _dateFormat;
+  }
+
   void _callListeners() {
     _listeners.forEach((listener) {
       listener.call(_sorting, _dateFormat);

@@ -12,9 +12,11 @@ debug option: reset to first installation
 
 Static informations page
 
-Add details page
+details page
 	picture, load from https://event-orga.mensa.de/getImage.php?h=300&jt=jt2021&name=e006_Schloss-Ludwigsburg_1.jpg
-	details (which details?)
+	format location/street/etc
+	table view with bold label, omit empty entries
+	add list of dates, with favorite icon, like in Grouping view
 
 make sure nothing is loaded via HTML when offline
 
@@ -23,4 +25,6 @@ include picture in list entry
 icon in drawer header
 
 automatic reload
+
+Filter Barrierefreiheit
 

@@ -389,16 +389,16 @@ class CalendarListScreenState extends State<CalendarListScreen> {
 
   void _toggleFavoriteState(BuildContext context, CalendarEntry event) {
     final isNowFavorite = GetIt.instance.get<FavoritesService>().toggleFavorite(event.eventId);
-    if (_onlyFavorites && !isNowFavorite) {
+    if (_onlyFavorites && !isNowFavorite && (_sorting == CalendarSorting.ALL_BY_DATE || _sorting == CalendarSorting.GROUP_BY_DATE)) {
       Scaffold.of(context).showSnackBar(SnackBar(
-        content: Text((event.abgesagt ? "Abgesagte Veranstaltung \"" : "Veranstaltung \"") + event.name + "\" entfernt"),
-        action: event.abgesagt
-            ? null
-            : SnackBarAction(
+        content: Text((event.takesPlace ? "Veranstaltung \"" : "Abgesagte Veranstaltung \"") + event.name + "\" entfernt"),
+        action: event.takesPlace
+            ? SnackBarAction(
                 label: "Rückgängig",
                 onPressed: () {
                   GetIt.instance.get<FavoritesService>().toggleFavorite(event.eventId);
-                }),
+                })
+            : null,
       ));
     }
   }
