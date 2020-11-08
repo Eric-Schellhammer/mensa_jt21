@@ -3,19 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:mensa_jt21/calendar/calendar_service.dart';
 import 'package:mensa_jt21/calendar/calendar_settings_service.dart';
+import 'package:mensa_jt21/calendar/favorite_button.dart';
 import 'package:mensa_jt21/screens/calendar_details_screen.dart';
 
 class CalendarListEntryWidget extends StatelessWidget {
-  static const brokenHeart = IconData(0xf7a9, fontFamily: "CustomIcons", fontPackage: null);
-
   static bool isDebugModeActive;
-  static Function(BuildContext, CalendarEntry) toggleFavoriteState;
 
   final CalendarEntry calendarEntry;
   final CalendarDateFormat calendarDateFormat;
-  final bool isFavorite;
 
-  const CalendarListEntryWidget(this.calendarEntry, this.calendarDateFormat, this.isFavorite);
+  const CalendarListEntryWidget(this.calendarEntry, this.calendarDateFormat);
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +35,7 @@ class CalendarListEntryWidget extends StatelessWidget {
                     children: [
                       Padding(
                         padding: EdgeInsets.fromLTRB(0, 8, 8, 8),
-                        child: _getIconButton(context, calendarEntry),
+                        child: new FavoriteButton(calendarEntry),
                       ),
                       Expanded(
                         child: GestureDetector(
@@ -77,30 +74,6 @@ class CalendarListEntryWidget extends StatelessWidget {
       style: Theme.of(context).textTheme.bodyText2,
     ));
     return elements;
-  }
-
-  Widget _getIconButton(BuildContext context, CalendarEntry calendarEntry) {
-    return calendarEntry.takesPlace
-        ? IconButton(
-            icon: Icon(
-              Icons.favorite,
-              color: isFavorite ? Colors.pink : Colors.grey[200],
-            ),
-            onPressed: () {
-              toggleFavoriteState.call(context, calendarEntry);
-            },
-          )
-        : IconButton(
-            icon: Icon(
-              brokenHeart,
-              color: isFavorite ? Colors.purple : Colors.grey.withOpacity(0),
-            ),
-            onPressed: isFavorite
-                ? () {
-                    toggleFavoriteState.call(context, calendarEntry);
-                  }
-                : null,
-          );
   }
 }
 

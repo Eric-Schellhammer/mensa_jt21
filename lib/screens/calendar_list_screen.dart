@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:mensa_jt21/calendar/calendar_entry.dart';
 import 'package:mensa_jt21/calendar/calendar_service.dart';
 import 'package:mensa_jt21/calendar/calendar_settings_service.dart';
+import 'package:mensa_jt21/calendar/favorite_button.dart';
 import 'package:mensa_jt21/calendar/favorites_service.dart';
 import 'package:mensa_jt21/initialize/debug_settings.dart';
 import 'package:mensa_jt21/online/online_service.dart';
@@ -405,14 +406,14 @@ class CalendarListScreenState extends State<CalendarListScreen> {
 
   void _transferEventsToWidgets() {
     CalendarListEntryWidget.isDebugModeActive = GetIt.instance.get<DebugSettings>().isDebugModeActive();
-    CalendarListEntryWidget.toggleFavoriteState = (context, event) {
+    final _favoritesService = GetIt.instance.get<FavoritesService>();
+    FavoriteButton.initialize(_favoritesService, (context, event) {
       _toggleFavoriteState(context, event);
-    };
-    final favoritesService = GetIt.instance.get<FavoritesService>();
+    });
     _displayedWidgets = List();
     if (_allEventsByDate == null || _allEventsByDate.isEmpty) return;
     final effSorting = _onlyFavorites ? CalendarSorting.ALL_BY_DATE : _sorting;
-    final bool Function(CalendarEntry) filterByFavorites = _onlyFavorites ? (entry) => favoritesService.isFavorite(entry.eventId) : (__) => true;
+    final bool Function(CalendarEntry) filterByFavorites = _onlyFavorites ? (entry) => _favoritesService.isFavorite(entry.eventId) : (__) => true;
     switch (effSorting) {
       case CalendarSorting.EMPTY:
         break;
@@ -424,7 +425,7 @@ class CalendarListScreenState extends State<CalendarListScreen> {
             _displayedWidgets.add(_createDateHeader(eventEntry.start));
             lastDay = currentDay;
           }
-          _displayedWidgets.add(new CalendarListEntryWidget(eventEntry, _dateFormat, favoritesService.isFavorite(eventEntry.eventId)));
+          _displayedWidgets.add(new CalendarListEntryWidget(eventEntry, _dateFormat));
         });
         if (_displayedWidgets.isEmpty && _onlyFavorites) {
           _displayedWidgets.add(Padding(
@@ -448,7 +449,7 @@ class CalendarListScreenState extends State<CalendarListScreen> {
         }
         _displayedWidgets.add(_createDateHeader(_selectedDate));
         _allEventsByDate.where((eventEntry) => _getDate(eventEntry.start) == _selectedDate).forEach((eventEntry) {
-          _displayedWidgets.add(new CalendarListEntryWidget(eventEntry, _dateFormat, favoritesService.isFavorite(eventEntry.eventId)));
+          _displayedWidgets.add(new CalendarListEntryWidget(eventEntry, _dateFormat));
         });
         break;
       case CalendarSorting.GROUP_BY_TYPE:
