@@ -364,6 +364,7 @@ class CalendarListScreenState extends State<CalendarListScreen> {
     _updateStateAndRefreshList(() {
       _sorting = sorting;
       _dateFormat = dateFormat;
+      StartTimeLine.calendarDateFormat = _dateFormat;
     });
   }
 
@@ -425,7 +426,7 @@ class CalendarListScreenState extends State<CalendarListScreen> {
             _displayedWidgets.add(_createDateHeader(eventEntry.start));
             lastDay = currentDay;
           }
-          _displayedWidgets.add(new CalendarListEntryWidget(eventEntry, _dateFormat));
+          _displayedWidgets.add(new CalendarListEntryWidget(eventEntry));
         });
         if (_displayedWidgets.isEmpty && _onlyFavorites) {
           _displayedWidgets.add(Padding(
@@ -449,7 +450,7 @@ class CalendarListScreenState extends State<CalendarListScreen> {
         }
         _displayedWidgets.add(_createDateHeader(_selectedDate));
         _allEventsByDate.where((eventEntry) => _getDate(eventEntry.start) == _selectedDate).forEach((eventEntry) {
-          _displayedWidgets.add(new CalendarListEntryWidget(eventEntry, _dateFormat));
+          _displayedWidgets.add(new CalendarListEntryWidget(eventEntry));
         });
         break;
       case CalendarSorting.GROUP_BY_TYPE:

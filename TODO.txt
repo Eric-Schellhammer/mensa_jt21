@@ -1,11 +1,4 @@
 
-
-Rework Grouping
-	Header (which information?)
-	below: all dates, with favorite icon
-	if one is cancelled, cross out this date
-	if all are cancelled, cross out header too
-
 when first opening, ask for online mode
 
 debug option: reset to first installation
@@ -26,3 +19,4 @@ automatic reload
 
 Filter Barrierefreiheit
 
+Suche

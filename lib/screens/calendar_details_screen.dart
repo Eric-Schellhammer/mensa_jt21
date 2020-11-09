@@ -1,10 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
-import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
+import 'package:mensa_jt21/calendar/calendar_entry.dart';
 import 'package:mensa_jt21/calendar/calendar_service.dart';
-import 'package:mensa_jt21/calendar/calendar_settings_service.dart';
 
 class CalendarDetailsScreen extends StatelessWidget {
   final CalendarEntry calendarEntry;
@@ -62,14 +61,14 @@ class CalendarDetailsScreen extends StatelessWidget {
 
   List<Widget> _getGeneral() {
     List<Widget> entries = List();
-    _addIfNotNull(entries, "Kategorie", calendarEntry.kategorie);
-    _addIfNotNull(entries, "Anbieter", calendarEntry.anbieter);
+    TitleAndElement.addIfNotNull(entries, "Kategorie", calendarEntry.kategorie);
+    TitleAndElement.addIfNotNull(entries, "Anbieter", calendarEntry.anbieter);
     if (calendarEntry.dauer != null) {
-      entries.add(_getTitleAndElement("Dauer", Text(calendarEntry.dauer.toString() + " Minuten")));
+      entries.add(TitleAndElement(title: "Dauer", value: Text(calendarEntry.dauer.toString() + " Minuten")));
     }
-    entries.add(_getTitleAndElement(
-      "Ort",
-      Expanded(
+    entries.add(TitleAndElement(
+      title: "Ort",
+      value: Expanded(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -80,48 +79,25 @@ class CalendarDetailsScreen extends StatelessWidget {
         ),
       ),
     ));
-    _addIfNotNull(entries, "Gebäude", calendarEntry.gebaeude);
-    _addIfNotNull(entries, "Raum", calendarEntry.raum);
-    _addIfNotNull(entries, "Wordpress", calendarEntry.wordpress);
-    _addIfNotNull(entries, "Barrierefreiheit", calendarEntry.barrierefreiheit);
-    _addIfNotNull(entries, "Haltestelle", calendarEntry.haltestelle);
+    TitleAndElement.addIfNotNull(entries, "Gebäude", calendarEntry.gebaeude);
+    TitleAndElement.addIfNotNull(entries, "Raum", calendarEntry.raum);
+    TitleAndElement.addIfNotNull(entries, "Wordpress", calendarEntry.wordpress);
+    TitleAndElement.addIfNotNull(entries, "Barrierefreiheit", calendarEntry.barrierefreiheit);
+    TitleAndElement.addIfNotNull(entries, "Haltestelle", calendarEntry.haltestelle);
     if (calendarEntry.lat != null && double.parse(calendarEntry.lat) != 0)
-      entries.add(_getTitleAndElement("Koordinaten", Text("N" + calendarEntry.lat + "° E" + calendarEntry.lon + "°")));
+      entries.add(TitleAndElement(title: "Koordinaten", value: Text("N" + calendarEntry.lat + "° E" + calendarEntry.lon + "°")));
     return entries;
   }
 
-  void _addIfNotNull(List<Widget> entries, String title, String value) {
-    if (value != null && value.isNotEmpty)
-      entries.add(
-        _getTitleAndElement(title, Expanded(child: Text(value))),
-      );
-  }
-
-  Widget _getTitleAndElement(String title, Widget value) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title + ": ",
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        value,
-      ],
-    );
-  }
-
   List<Widget> _getSpecific() {
-    final CalendarDateFormat calendarDateFormat = GetIt.instance.get<CalendarSettingsService>().getDateFormatOnce();
     List<Widget> entries = List();
-    entries.add(Text(
-      DateFormat(calendarDateFormat.startTimeFormat).format(calendarEntry.start),
-    ));
+    entries.add(TitleAndElement(title: "Start", value: StartTimeLine(calendarEntry)));
     if (calendarEntry.abgesagt)
       entries.add(Text(
         "Veranstaltung wurde abgesagt!",
         style: TextStyle(fontSize: 20).copyWith(color: Colors.red),
       ));
-    entries.add(Text("Abmarsch: " + calendarEntry.abmarsch));
+    entries.add(TitleAndElement(title: "Abmarsch", value: Text(DateFormat("HH:mm 'Uhr'").format(calendarEntry.abmarsch))));
     return entries;
   }
 }

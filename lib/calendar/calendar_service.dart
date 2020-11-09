@@ -46,8 +46,7 @@ class CalendarService {
   }
 
   void checkIfUpdateAvailable() {
-    if (_updateAvailableListener != null)
-      isUpdateAvailable(_updateAvailableListener);
+    if (_updateAvailableListener != null) isUpdateAvailable(_updateAvailableListener);
   }
 
   /// Check online if an update of the calendar is available and if so, load it
@@ -115,7 +114,7 @@ class CalendarEntry implements Comparable<CalendarEntry> {
   final String raum;
   final String lat;
   final String lon;
-  final String abmarsch;
+  final DateTime abmarsch;
   final bool abgesagt;
   final String wordpress;
   final String eventtext;
@@ -166,7 +165,7 @@ class CalendarEntry implements Comparable<CalendarEntry> {
         raum: json["raum"],
         lat: json["lat"],
         lon: json["lon"],
-        abmarsch: json["abmarsch"],
+        abmarsch: DateTime.parse("2020-01-01 " + json["abmarsch"]),
         abgesagt: json["abgesagt"] != "0",
         wordpress: json["wordpress"],
         eventtext: json["eventtext"],
