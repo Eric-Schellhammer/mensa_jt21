@@ -146,7 +146,7 @@ class CalendarDetailsScreenState extends State<CalendarDetailsScreen> {
   }
 
   List<Widget> _getSpecificEntries() {
-    final textStyle = calendarEntry.abgesagt ? TextStyle(color: Colors.grey, decoration: TextDecoration.lineThrough) : null;
+    final textStyle = CalendarEntryTextStyle(calendarEntry);
     List<Widget> entries = List();
     entries.add(TitleAndElement(
       title: "Start",

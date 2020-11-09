@@ -15,10 +15,7 @@ class CalendarListEntryWidget extends StatelessWidget {
     return Theme(
         data: Theme.of(context).copyWith(
           textTheme: TextTheme(
-            bodyText2: TextStyle(
-              color: calendarEntry.abgesagt ? Colors.grey : Colors.black,
-              decoration: calendarEntry.abgesagt ? TextDecoration.lineThrough : null,
-            ),
+            bodyText2: CalendarEntryTextStyle(calendarEntry),
           ),
         ),
         // additional Builder to transfer the Theme defined above

@@ -99,10 +99,7 @@ class StartTimeLine extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       DateFormat(calendarDateFormat.startTimeFormat).format(_calendarEntry.start),
-      style: TextStyle(
-        color: _calendarEntry.abgesagt ? Colors.grey : Colors.black,
-        decoration: _calendarEntry.abgesagt ? TextDecoration.lineThrough : null,
-      ),
+      style: CalendarEntryTextStyle(_calendarEntry),
     );
   }
 }
