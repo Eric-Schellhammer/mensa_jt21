@@ -66,30 +66,32 @@ class CalendarGroupListWidget extends StatelessWidget {
   }
 
   List<Widget> _getHeaderEntries(BuildContext context, CalendarEntry calendarEntry) {
+    final textStyle = Theme.of(context).textTheme.bodyText2;
     List<Widget> entries = List();
     entries.add(Padding(
       padding: EdgeInsets.only(bottom: 16),
       child: Text(
         calendarEntry.name,
         softWrap: true,
-        style: Theme.of(context).textTheme.bodyText2.copyWith(
+        style: textStyle.copyWith(
           fontWeight: FontWeight.bold,
           fontSize: 18,
         ),
       ),
     ));
-    entries.add(TitleAndElement(
-      title: "Kategorie",
-      value: Text(
-        calendarEntry.kategorie,
-        style: Theme.of(context).textTheme.bodyText2,
-      ),
-    ));
-    TitleAndElement.addIfNotNull(entries, "Anbieter", calendarEntry.anbieter);
+    TitleAndElement.addIfNotNullWithStyle(entries, "Kategorie", calendarEntry.kategorie, textStyle);
+    TitleAndElement.addIfNotNullWithStyle(entries, "Anbieter", calendarEntry.anbieter, textStyle);
     if (calendarEntry.dauer != null) {
-      entries.add(TitleAndElement(title: "Dauer", value: Text(calendarEntry.dauer.toString() + " Minuten")));
+      entries.add(TitleAndElement(
+        title: "Dauer",
+        value: Text(
+          calendarEntry.dauer.toString() + " Minuten",
+          style: textStyle,
+        ),
+        textStyle: textStyle,
+      ));
     }
-    TitleAndElement.addIfNotNull(entries, "Barrierefreiheit", calendarEntry.barrierefreiheit);
+    TitleAndElement.addIfNotNullWithStyle(entries, "Barrierefreiheit", calendarEntry.barrierefreiheit, textStyle);
     return entries;
   }
 

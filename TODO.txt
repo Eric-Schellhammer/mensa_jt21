@@ -1,13 +1,16 @@
 
+
+details page: add list of dates, with favorite icon, like in Grouping view
+
+
+
 when first opening, ask for online mode
 
 debug option: reset to first installation
 
 Static informations page
 
-details page
-	picture, load from https://event-orga.mensa.de/getImage.php?h=300&jt=jt2021&name=e006_Schloss-Ludwigsburg_1.jpg
-	add list of dates, with favorite icon, like in Grouping view
+details page: picture, load from https://event-orga.mensa.de/getImage.php?h=300&jt=jt2021&name=e006_Schloss-Ludwigsburg_1.jpg
 
 make sure nothing is loaded via HTML when offline
 

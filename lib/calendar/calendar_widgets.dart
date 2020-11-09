@@ -50,11 +50,24 @@ class FavoriteButton extends StatelessWidget {
 class TitleAndElement extends StatelessWidget {
   final String title;
   final Widget value;
+  final TextStyle textStyle;
 
-  const TitleAndElement({this.title, this.value});
+  const TitleAndElement({this.title, this.value, this.textStyle});
 
   static void addIfNotNull(List<Widget> entries, String title, String value) {
     if (value != null && value.isNotEmpty) entries.add(TitleAndElement(title: title, value: Text(value)));
+  }
+
+  static void addIfNotNullWithStyle(List<Widget> entries, String title, String value, TextStyle textStyle) {
+    if (value != null && value.isNotEmpty)
+      entries.add(TitleAndElement(
+        title: title,
+        value: Text(
+          value,
+          style: textStyle,
+        ),
+        textStyle: textStyle,
+      ));
   }
 
   @override
@@ -66,7 +79,7 @@ class TitleAndElement extends StatelessWidget {
         children: [
           Text(
             title + ": ",
-            style: TextStyle(fontWeight: FontWeight.bold),
+            style: textStyle != null ? textStyle.copyWith(fontWeight: FontWeight.bold) : TextStyle(fontWeight: FontWeight.bold),
           ),
           Expanded(child: value),
         ],
@@ -92,4 +105,16 @@ class StartTimeLine extends StatelessWidget {
       ),
     );
   }
+}
+
+class CalendarEntryTextStyle extends TextStyle {
+  final CalendarEntry _calendarEntry;
+
+  CalendarEntryTextStyle(this._calendarEntry);
+
+  @override
+  Color get color => _calendarEntry.abgesagt ? Colors.grey : Colors.black;
+
+  @override
+  get decoration => _calendarEntry.abgesagt ? TextDecoration.lineThrough : super.decoration;
 }
