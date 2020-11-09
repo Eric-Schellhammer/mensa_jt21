@@ -1,6 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:mensa_jt21/calendar/calendar_service.dart';
+import 'package:mensa_jt21/calendar/calendar_settings_service.dart';
 
 import 'favorites_service.dart';
 
@@ -42,5 +44,52 @@ class FavoriteButton extends StatelessWidget {
                   }
                 : null,
           );
+  }
+}
+
+class TitleAndElement extends StatelessWidget {
+  final String title;
+  final Widget value;
+
+  const TitleAndElement({this.title, this.value});
+
+  static void addIfNotNull(List<Widget> entries, String title, String value) {
+    if (value != null && value.isNotEmpty) entries.add(TitleAndElement(title: title, value: Text(value)));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title + ": ",
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          Expanded(child: value),
+        ],
+      ),
+    );
+  }
+}
+
+class StartTimeLine extends StatelessWidget {
+  static CalendarDateFormat calendarDateFormat;
+
+  final CalendarEntry _calendarEntry;
+
+  const StartTimeLine(this._calendarEntry);
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      DateFormat(calendarDateFormat.startTimeFormat).format(_calendarEntry.start),
+      style: TextStyle(
+        color: _calendarEntry.abgesagt ? Colors.grey : Colors.black,
+        decoration: _calendarEntry.abgesagt ? TextDecoration.lineThrough : null,
+      ),
+    );
   }
 }

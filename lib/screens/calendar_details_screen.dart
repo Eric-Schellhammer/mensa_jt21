@@ -2,8 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:intl/intl.dart';
-import 'package:mensa_jt21/calendar/calendar_entry.dart';
 import 'package:mensa_jt21/calendar/calendar_service.dart';
+import 'package:mensa_jt21/calendar/calendar_widgets.dart';
 
 class CalendarDetailsScreen extends StatelessWidget {
   final CalendarEntry calendarEntry;
@@ -68,15 +68,13 @@ class CalendarDetailsScreen extends StatelessWidget {
     }
     entries.add(TitleAndElement(
       title: "Ort",
-      value: Expanded(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(calendarEntry.location ?? ""),
-            Text(calendarEntry.strasse ?? ""),
-            Text((calendarEntry.plz ?? "") + " " + (calendarEntry.ortsname ?? "")),
-          ],
-        ),
+      value: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(calendarEntry.location ?? ""),
+          Text(calendarEntry.strasse ?? ""),
+          Text((calendarEntry.plz ?? "") + " " + (calendarEntry.ortsname ?? "")),
+        ],
       ),
     ));
     TitleAndElement.addIfNotNull(entries, "Gebäude", calendarEntry.gebaeude);
