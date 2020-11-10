@@ -44,18 +44,36 @@ class OnlineService {
     });
   }
 
+  OnlineMode getOnlineModeOnce() {
+    return _mode;
+  }
+
   String getDescription(OnlineMode mode) {
     switch (mode) {
       case OnlineMode.OFFLINE:
-        return "Die App geht gar nicht online. Keine mobilen Daten werden verwendet.";
+        return "Die App geht gar nicht online. "
+            "Keine mobilen Daten werden verwendet.";
       case OnlineMode.MANUAL:
-        return "Die App geht nicht von alleine online. Du hast die volle Kontrolle. Du kannst prüfen, ob Aktualisierungen vorliegen, wann es dir passt, und diese auch dann herunterladen, wann es dir passt.";
+        return "Die App geht nicht von alleine online. "
+            "Du hast die volle Kontrolle. "
+            "Du kannst prüfen, ob Aktualisierungen vorliegen, wann es dir passt, "
+            "und diese auch dann herunterladen, wann es dir passt. "
+            "Es werden keine Bilder nachgeladen.";
       case OnlineMode.ON_DEMAND:
-        return "Die App geht nicht von alleine online. Du kannst prüfen, ob Aktualisierungen vorliegen, wann es dir passt. Sollte es welche geben, werden diese automatisch heruntergeladen.";
+        return "Die App geht nicht von alleine online. "
+            "Du kannst prüfen, ob Aktualisierungen vorliegen, wann es dir passt. "
+            "Sollte es welche geben, werden diese automatisch heruntergeladen. "
+            "Es werden keine Bilder nachgeladen.";
       case OnlineMode.AUTOMATIC:
-        return "Die App geht von Zeit zu Zeit online, um zu prüfen, ob Aktualisierungen vorliegen. Dies benötigt nur minimal mobile Daten. Du kannst die Aktualisierungen dann herunterladen, wann es dir passt.";
+        return "Die App geht von Zeit zu Zeit online, um zu prüfen, ob Aktualisierungen vorliegen. "
+            "Dies benötigt nur minimal mobile Daten. "
+            "Du kannst die Aktualisierungen dann herunterladen, wann es dir passt. "
+            "Es werden keine Bilder nachgeladen.";
       case OnlineMode.ONLINE:
-        return "Die App geht von Zeit zu Zeit online, um zu prüfen, ob Aktualisierungen vorliegen, und wird diese automatisch herunterladen. Dies ist die maximale Automatisierung; sie verbraucht allerdings auch am meisten mobile Daten.";
+        return "Die App geht von Zeit zu Zeit online, um zu prüfen, ob Aktualisierungen vorliegen, "
+            "und wird diese automatisch herunterladen. "
+            "Bilder (z. B. in den detaillierten Beschreibungen der Veranstaltungen) werden automatisch nachgeladen. "
+            "Dies ist die maximale Automatisierung; sie verbraucht allerdings auch am meisten mobile Daten.";
       case OnlineMode.INITIAL:
       // fall-through in this illegal case
     }

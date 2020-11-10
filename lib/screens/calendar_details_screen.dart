@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:mensa_jt21/calendar/calendar_service.dart';
 import 'package:mensa_jt21/calendar/calendar_widgets.dart';
 import 'package:mensa_jt21/calendar/favorites_service.dart';
+import 'package:mensa_jt21/online/online_service.dart';
 
 class CalendarDetailsScreen extends StatefulWidget {
   final CalendarEntry calendarEntry;
@@ -21,6 +22,8 @@ class CalendarDetailsScreenState extends State<CalendarDetailsScreen> {
     return widget.calendarEntry;
   }
 
+  List<String> blacklistedElements;
+
   @override
   void initState() {
     super.initState();
@@ -29,6 +32,18 @@ class CalendarDetailsScreenState extends State<CalendarDetailsScreen> {
       favoriteService.toggleFavorite(calendarEntry.eventId);
       if (mounted) setState(() {});
     });
+    switch (GetIt.instance.get<OnlineService>().getOnlineModeOnce()) {
+      case OnlineMode.INITIAL:
+      case OnlineMode.OFFLINE:
+      case OnlineMode.MANUAL:
+      case OnlineMode.AUTOMATIC:
+      case OnlineMode.ON_DEMAND:
+        blacklistedElements = ["img"];
+        break;
+      case OnlineMode.ONLINE:
+        blacklistedElements = [];
+        break;
+    }
   }
 
   @override
@@ -69,6 +84,7 @@ class CalendarDetailsScreenState extends State<CalendarDetailsScreen> {
     entries.add(_subtitle("Beschreibung"));
     entries.add(Html(
       data: calendarEntry.eventtext,
+      blacklistedElements: blacklistedElements,
     ));
     entries.add(_subtitle("Allgemeine Informationen"));
     entries.addAll(_getGeneral());
