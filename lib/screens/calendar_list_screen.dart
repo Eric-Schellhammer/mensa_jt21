@@ -273,12 +273,14 @@ class CalendarListScreenState extends State<CalendarListScreen> {
     final List<Widget> drawerEntries = List();
     drawerEntries.add(
       DrawerHeader(
-        child: Text(
-          'Navigation',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
+        child:
+           Image(image: AssetImage('resources/images/splash.png')),
+        // Text(
+        //   'Navigation',
+        //   style: TextStyle(fontWeight: FontWeight.bold),
+        // ),
         decoration: BoxDecoration(
-          color: Colors.amberAccent,
+          color: Colors.amber,
         ),
       ),
     );

@@ -14,12 +14,11 @@ details page: picture, load from https://event-orga.mensa.de/getImage.php?h=300&
 
 make sure nothing is loaded via HTML when offline
 
-include picture in list entry
-
-icon in drawer header
-
 automatic reload
 
 Filter Barrierefreiheit
 
 Suche
+
+include picture in list entry
+
