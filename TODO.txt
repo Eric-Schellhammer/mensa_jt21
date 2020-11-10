@@ -8,8 +8,6 @@ details page: picture, load from https://event-orga.mensa.de/getImage.php?h=300&
 
 automatic reload
 
-Filter Barrierefreiheit
-
 Suche
 
 

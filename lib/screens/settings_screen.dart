@@ -15,6 +15,7 @@ class SettingsScreenState extends State<SettingsScreen> {
   OnlineMode _selectedOnlineMode;
   CalendarSorting _selectedCalendarSorting;
   CalendarDateFormat _selectedDateFormat;
+  bool _includeRestricted = true;
 
   @override
   void initState() {
@@ -27,15 +28,17 @@ class SettingsScreenState extends State<SettingsScreen> {
       else
         _selectedOnlineMode = mode;
     });
-    GetIt.instance.get<CalendarSettingsService>().registerListener((sorting, dateFormat) {
+    GetIt.instance.get<CalendarSettingsService>().registerListener((sorting, dateFormat, includeRestricted) {
       if (mounted)
         setState(() {
           _selectedCalendarSorting = sorting;
           _selectedDateFormat = dateFormat;
+          _includeRestricted = includeRestricted;
         });
       else {
         _selectedCalendarSorting = sorting;
         _selectedDateFormat = dateFormat;
+        _includeRestricted = includeRestricted;
       }
     });
     // TODO remove listeners
@@ -141,6 +144,19 @@ class SettingsScreenState extends State<SettingsScreen> {
                   )),
             ],
           ),
+          Padding(
+            padding: EdgeInsets.fromLTRB(16, 8, 16, 8),
+            child: Row(children: [
+              Checkbox(
+                  value: _includeRestricted,
+                  onChanged: (include) {
+                    GetIt.instance.get<CalendarSettingsService>().setIncludeRestricted(include);
+                  }),
+              Expanded(
+                child: Text("Zeige auch solche Veranstaltungen an, die als 'nicht rollstuhltauglich' gekennzeichnet sind."),
+              ),
+            ]),
+          )
         ],
       ),
     );

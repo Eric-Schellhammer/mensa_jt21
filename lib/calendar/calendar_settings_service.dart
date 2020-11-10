@@ -34,10 +34,12 @@ class CalendarSettingsService {
 
   static const String _CALENDAR_SORTING = "calendarSorting";
   static const String _CALENDAR_DATE_FORMAT = "calendarDateFormat";
+  static const String _CALENDAR_INCLUDE_RESTRICTED = "calendarIncludeRestricted";
 
-  final List<Function(CalendarSorting, CalendarDateFormat)> _listeners = List();
+  final List<Function(CalendarSorting, CalendarDateFormat, bool)> _listeners = List();
   CalendarSorting _sorting = CalendarSorting.EMPTY;
   CalendarDateFormat _dateFormat = CalendarDateFormat.WEEKDAY_AND_DATE;
+  bool _includeRestricted;
 
   SharedPreferences _prefs;
 
@@ -47,6 +49,8 @@ class CalendarSettingsService {
       _sorting = CalendarSorting.values.firstWhere((sorting) => sorting.toString() == sortingString, orElse: () => CalendarSorting.GROUP_BY_DATE);
       final String dateFormatString = _prefs.get(_CALENDAR_DATE_FORMAT);
       _dateFormat = CalendarDateFormat.values.firstWhere((format) => format.toString() == dateFormatString, orElse: () => CalendarDateFormat.WEEKDAY_AND_DATE);
+      final include = _prefs.getBool(_CALENDAR_INCLUDE_RESTRICTED);
+      _includeRestricted = include != null ? include : true;
       _callListeners();
     });
   }
@@ -54,14 +58,16 @@ class CalendarSettingsService {
   void resetToInitial() {
     _prefs.remove(_CALENDAR_SORTING);
     _prefs.remove(_CALENDAR_DATE_FORMAT);
+    _prefs.remove(_CALENDAR_INCLUDE_RESTRICTED);
     _sorting = CalendarSorting.GROUP_BY_DATE;
     _dateFormat = CalendarDateFormat.WEEKDAY_AND_DATE;
+    _includeRestricted = true;
     _callListeners();
   }
 
-  void registerListener(Function(CalendarSorting, CalendarDateFormat) listener) {
+  void registerListener(Function(CalendarSorting, CalendarDateFormat, bool) listener) {
     _listeners.add(listener);
-    listener.call(_sorting, _dateFormat);
+    listener.call(_sorting, _dateFormat, _includeRestricted);
   }
 
   void setSorting(CalendarSorting sorting) {
@@ -76,6 +82,12 @@ class CalendarSettingsService {
     _callListeners();
   }
 
+  void setIncludeRestricted(bool include) {
+    _includeRestricted = include;
+    _prefs.setBool(_CALENDAR_INCLUDE_RESTRICTED, _includeRestricted);
+    _callListeners();
+  }
+
   /// return the date format, but do not listen to changes of it
   CalendarDateFormat getDateFormatOnce() {
     return _dateFormat;
@@ -83,7 +95,7 @@ class CalendarSettingsService {
 
   void _callListeners() {
     _listeners.forEach((listener) {
-      listener.call(_sorting, _dateFormat);
+      listener.call(_sorting, _dateFormat, _includeRestricted);
     });
   }
 }

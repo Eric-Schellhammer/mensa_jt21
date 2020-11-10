@@ -35,6 +35,7 @@ class CalendarListScreenState extends State<CalendarListScreen> {
   bool _onlyFavorites = false;
   CalendarDateFormat _dateFormat;
   OnlineMode _onlineMode;
+  bool _includeRestricted;
   bool _initialSettingsActive = false;
   bool _updateAvailable = false;
 
@@ -47,7 +48,7 @@ class CalendarListScreenState extends State<CalendarListScreen> {
     onlineService.registerModeListener((onlineMode) => _updateOnlineMode(onlineMode));
     onlineService.init();
     final calendarSettingsService = GetIt.instance.get<CalendarSettingsService>();
-    calendarSettingsService.registerListener((sorting, dateFormat) => _updateCalendarSettings(sorting, dateFormat));
+    calendarSettingsService.registerListener((sorting, dateFormat, includeRestricted) => _updateCalendarSettings(sorting, dateFormat, includeRestricted));
     calendarSettingsService.initialize();
     final calendarService = GetIt.instance.get<CalendarService>();
     calendarService.registerUpdateAvailableListener((isAvailable) => _updateUpdateAvailable(isAvailable));
@@ -372,10 +373,11 @@ class CalendarListScreenState extends State<CalendarListScreen> {
     });
   }
 
-  void _updateCalendarSettings(CalendarSorting sorting, CalendarDateFormat dateFormat) {
+  void _updateCalendarSettings(CalendarSorting sorting, CalendarDateFormat dateFormat, bool includeRestricted) {
     _updateStateAndRefreshList(() {
       _sorting = sorting;
       _dateFormat = dateFormat;
+      _includeRestricted = includeRestricted;
       StartTimeLine.calendarDateFormat = _dateFormat;
     });
   }
@@ -429,12 +431,13 @@ class CalendarListScreenState extends State<CalendarListScreen> {
     if (_allEventsByDate == null || _allEventsByDate.isEmpty) return;
     final effSorting = _onlyFavorites ? CalendarSorting.ALL_BY_DATE : _sorting;
     final bool Function(CalendarEntry) filterByFavorites = _onlyFavorites ? (entry) => _favoritesService.isFavorite(entry.eventId) : (__) => true;
+    final bool Function(CalendarEntry) filterByRestricted = _includeRestricted ? (__) => true : (entry) => entry.barrierefreiheit != "Nicht rollstuhltauglich";
     switch (effSorting) {
       case CalendarSorting.EMPTY:
         break;
       case CalendarSorting.ALL_BY_DATE:
         DateTime lastDay;
-        _allEventsByDate.where(filterByFavorites).forEach((eventEntry) {
+        _allEventsByDate.where(filterByFavorites).where(filterByRestricted).forEach((eventEntry) {
           final DateTime currentDay = _getDate(eventEntry.start);
           if (lastDay == null || lastDay != currentDay) {
             _displayedWidgets.add(_createDateHeader(eventEntry.start));
@@ -463,13 +466,13 @@ class CalendarListScreenState extends State<CalendarListScreen> {
           _selectedDate = _getDate(_allEventsByDate[0].start);
         }
         _displayedWidgets.add(_createDateHeader(_selectedDate));
-        _allEventsByDate.where((eventEntry) => _getDate(eventEntry.start) == _selectedDate).forEach((eventEntry) {
+        _allEventsByDate.where(filterByRestricted).where((eventEntry) => _getDate(eventEntry.start) == _selectedDate).forEach((eventEntry) {
           _displayedWidgets.add(new CalendarListEntryWidget(eventEntry));
         });
         break;
       case CalendarSorting.GROUP_BY_TYPE:
         final Map<int, CalendarEntryGroup> entriesByType = Map();
-        _allEventsByDate.forEach((eventEntry) {
+        _allEventsByDate.where(filterByRestricted).forEach((eventEntry) {
           entriesByType.putIfAbsent(eventEntry.eventGroupId, () => CalendarEntryGroup()).entries.add(eventEntry);
         });
         final List<CalendarEntryGroup> groups = entriesByType.values.toList();

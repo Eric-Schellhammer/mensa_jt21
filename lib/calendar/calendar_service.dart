@@ -65,6 +65,10 @@ class CalendarService {
     rootBundle.loadString("resources/jt20.json").then((calendarJson) => _setCalendarJson(calendarDateJson, calendarJson));
   }
 
+  Set<String> getBarrierefreiEntries() {
+    return _calendarEntries.map((entry) => entry.barrierefreiheit).toSet();
+  }
+
   void _setCalendarJson(String calendarDateJson, String calendarJson) {
     _prefs.setString(_CALENDAR_DATE, calendarDateJson);
     _prefs.setString(_CALENDAR_ENTRIES, calendarJson);
