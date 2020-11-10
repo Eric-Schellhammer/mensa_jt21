@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
 import 'package:mensa_jt21/calendar/calendar_service.dart';
+import 'package:mensa_jt21/calendar/calendar_settings_service.dart';
 import 'package:mensa_jt21/calendar/favorites_service.dart';
 import 'package:mensa_jt21/initialize/debug_settings.dart';
 import 'package:mensa_jt21/online/online_service.dart';
@@ -63,12 +64,20 @@ class DebugScreenState extends State<DebugScreen> {
               onPressed: debugSettings.simulatedCalendarUpdate == null
                   ? null
                   : () {
-                      setState(() {
-                        debugSettings.simulatedCalendarUpdate = null;
-                        debugSettings.simulatedCalendar = null;
-                      });
-                      GetIt.instance.get<CalendarService>().loadDefaultCalendarFile();
+                      _resetSimulation();
                     },
+            ),
+            RaisedButton(
+              child: Text("App auf initiale Installation zurücksetzen"),
+              onPressed: () {
+                GetIt.instance.get<DebugSettings>().activateDebugMode = false;
+                GetIt.instance.get<OnlineService>().resetToInitial();
+                GetIt.instance.get<FavoritesService>().resetToInitial();
+                GetIt.instance.get<CalendarSettingsService>().resetToInitial();
+                // add further resetting here
+                _resetSimulation();
+                Navigator.of(context).pop();
+              },
             ),
             RaisedButton(
               child: Text("Debug-Mode ausschalten"),
@@ -83,6 +92,14 @@ class DebugScreenState extends State<DebugScreen> {
             ),
           ],
         ));
+  }
+
+  void _resetSimulation() {
+    setState(() {
+      debugSettings.simulatedCalendarUpdate = null;
+      debugSettings.simulatedCalendar = null;
+    });
+    GetIt.instance.get<CalendarService>().loadDefaultCalendarFile();
   }
 
   void _cancelEvent() {

@@ -63,38 +63,11 @@ class SettingsScreenState extends State<SettingsScreen> {
             ),
             Padding(
               padding: EdgeInsets.fromLTRB(0, 8, 16, 0),
-              child: DropdownButton<OnlineMode>(
-                value: _selectedOnlineMode,
-                items: [
-                  DropdownMenuItem<OnlineMode>(
-                    value: OnlineMode.OFFLINE,
-                    child: Text("Offline"),
-                  ),
-                  DropdownMenuItem<OnlineMode>(
-                    value: OnlineMode.MANUAL,
-                    child: Text("Manuell"),
-                  ),
-                  DropdownMenuItem<OnlineMode>(
-                    value: OnlineMode.ON_DEMAND,
-                    child: Text("Manuell / Automatisch"),
-                  ),
-                  DropdownMenuItem<OnlineMode>(
-                    value: OnlineMode.AUTOMATIC,
-                    child: Text("Automatisch / Manuell"),
-                  ),
-                  DropdownMenuItem<OnlineMode>(
-                    value: OnlineMode.ONLINE,
-                    child: Text("Automatisch"),
-                  ),
-                ],
-                onChanged: (mode) {
-                  GetIt.instance.get<OnlineService>().setOnlineMode(mode);
-                },
-              ),
+              child: OnlineModeButton(_selectedOnlineMode),
             ),
           ]),
           Padding(
-            padding: EdgeInsets.fromLTRB(16, 0, 16, 0),
+            padding: EdgeInsets.fromLTRB(48, 0, 16, 0),
             child: Text(
               GetIt.instance.get<OnlineService>().getDescription(_selectedOnlineMode),
               softWrap: true,
@@ -170,6 +143,44 @@ class SettingsScreenState extends State<SettingsScreen> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class OnlineModeButton extends StatelessWidget {
+  final OnlineMode initialOnlineMode;
+
+  const OnlineModeButton(this.initialOnlineMode);
+
+  @override
+  Widget build(BuildContext context) {
+    return DropdownButton<OnlineMode>(
+      value: initialOnlineMode,
+      items: [
+        DropdownMenuItem<OnlineMode>(
+          value: OnlineMode.OFFLINE,
+          child: Text("Offline"),
+        ),
+        DropdownMenuItem<OnlineMode>(
+          value: OnlineMode.MANUAL,
+          child: Text("Manuell"),
+        ),
+        DropdownMenuItem<OnlineMode>(
+          value: OnlineMode.ON_DEMAND,
+          child: Text("Manuell / Automatisch"),
+        ),
+        DropdownMenuItem<OnlineMode>(
+          value: OnlineMode.AUTOMATIC,
+          child: Text("Automatisch / Manuell"),
+        ),
+        DropdownMenuItem<OnlineMode>(
+          value: OnlineMode.ONLINE,
+          child: Text("Automatisch"),
+        ),
+      ],
+      onChanged: (mode) {
+        GetIt.instance.get<OnlineService>().setOnlineMode(mode);
+      },
     );
   }
 }

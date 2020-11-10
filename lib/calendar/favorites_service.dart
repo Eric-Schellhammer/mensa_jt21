@@ -1,7 +1,7 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 class FavoritesService {
-  static const FAVORITES = "favorites";
+  static const _FAVORITES = "favorites";
 
   SharedPreferences _prefs;
   List<Function> _listeners = List();
@@ -9,7 +9,7 @@ class FavoritesService {
 
   void initialize() {
     SharedPreferences.getInstance().then((prefs) => this._prefs = prefs).then((__) {
-      final storedFavorites = _prefs.getStringList(FAVORITES);
+      final storedFavorites = _prefs.getStringList(_FAVORITES);
       if (storedFavorites != null) {
         storedFavorites.forEach((favourite) {
           if (favourite != null) _favoriteEvents.add(int.parse(favourite));
@@ -17,6 +17,12 @@ class FavoritesService {
         _callListeners();
       }
     });
+  }
+
+  void resetToInitial() {
+    _prefs.remove(_FAVORITES);
+    _favoriteEvents.clear();
+    _callListeners();
   }
 
   void registerUpdateListener(Function runnable) {
@@ -39,7 +45,7 @@ class FavoritesService {
       result = true;
     }
     _callListeners();
-    _prefs.setStringList(FAVORITES, _favoriteEvents.map((favorite) => favorite.toString()).toList());
+    _prefs.setStringList(_FAVORITES, _favoriteEvents.map((favorite) => favorite.toString()).toList());
     return result;
   }
 

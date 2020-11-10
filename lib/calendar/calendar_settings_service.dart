@@ -51,6 +51,14 @@ class CalendarSettingsService {
     });
   }
 
+  void resetToInitial() {
+    _prefs.remove(_CALENDAR_SORTING);
+    _prefs.remove(_CALENDAR_DATE_FORMAT);
+    _sorting = CalendarSorting.GROUP_BY_DATE;
+    _dateFormat = CalendarDateFormat.WEEKDAY_AND_DATE;
+    _callListeners();
+  }
+
   void registerListener(Function(CalendarSorting, CalendarDateFormat) listener) {
     _listeners.add(listener);
     listener.call(_sorting, _dateFormat);

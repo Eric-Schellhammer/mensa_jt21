@@ -3,6 +3,7 @@ import 'package:mensa_jt21/calendar/calendar_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 enum OnlineMode {
+  INITIAL, // not specified yet
   OFFLINE, // not online at all
   MANUAL, // manually check if updates are available, and manually update
   AUTOMATIC, // automatically check if updates are available, but update manually
@@ -21,8 +22,13 @@ class OnlineService {
   void init() {
     SharedPreferences.getInstance().then((prefs) => this._prefs = prefs).then((__) {
       final String onlineModeString = _prefs.get(_ONLINE_MODE);
-      setOnlineMode(OnlineMode.values.firstWhere((mode) => mode.toString() == onlineModeString, orElse: () => OnlineMode.OFFLINE));
+      setOnlineMode(OnlineMode.values.firstWhere((mode) => mode.toString() == onlineModeString, orElse: () => OnlineMode.INITIAL));
     });
+  }
+
+  void resetToInitial() {
+    setOnlineMode(OnlineMode.INITIAL);
+    _mode = OnlineMode.INITIAL;
   }
 
   void registerModeListener(Function(OnlineMode) listener) {
@@ -50,10 +56,12 @@ class OnlineService {
         return "Die App geht von Zeit zu Zeit online, um zu prüfen, ob Aktualisierungen vorliegen. Dies benötigt nur minimal mobile Daten. Du kannst die Aktualisierungen dann herunterladen, wann es dir passt.";
       case OnlineMode.ONLINE:
         return "Die App geht von Zeit zu Zeit online, um zu prüfen, ob Aktualisierungen vorliegen, und wird diese automatisch herunterladen. Dies ist die maximale Automatisierung; sie verbraucht allerdings auch am meisten mobile Daten.";
+      case OnlineMode.INITIAL:
+      // fall-through in this illegal case
     }
     return "";
   }
-  
+
   void performAutomaticPollingIfActive() {
     switch (_mode) {
       case OnlineMode.AUTOMATIC:

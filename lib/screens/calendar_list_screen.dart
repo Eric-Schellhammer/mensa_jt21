@@ -34,6 +34,7 @@ class CalendarListScreenState extends State<CalendarListScreen> {
   bool _onlyFavorites = false;
   CalendarDateFormat _dateFormat;
   OnlineMode _onlineMode;
+  bool _initialSettingsActive = false;
   bool _updateAvailable = false;
 
   @override
@@ -58,6 +59,7 @@ class CalendarListScreenState extends State<CalendarListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_onlineMode == OnlineMode.INITIAL || _initialSettingsActive) return _initialScreenScaffold(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text("Mensa JT21"),
@@ -273,8 +275,7 @@ class CalendarListScreenState extends State<CalendarListScreen> {
     final List<Widget> drawerEntries = List();
     drawerEntries.add(
       DrawerHeader(
-        child:
-           Image(image: AssetImage('resources/images/splash.png')),
+        child: Image(image: AssetImage('resources/images/splash.png')),
         // Text(
         //   'Navigation',
         //   style: TextStyle(fontWeight: FontWeight.bold),
@@ -492,5 +493,55 @@ class CalendarListScreenState extends State<CalendarListScreen> {
 
   DateTime _getDate(DateTime dateTime) {
     return DateTime.parse(DateFormat("yyyyMMdd").format(dateTime));
+  }
+
+  Widget _initialScreenScaffold(BuildContext context) {
+    _initialSettingsActive = true;
+    if (_onlineMode == OnlineMode.INITIAL) GetIt.instance.get<OnlineService>().setOnlineMode(OnlineMode.OFFLINE);
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Mensa JT21"),
+      ),
+      body: Column(
+        children: [
+          Padding(
+            padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
+            child: Text(
+              "Einstellungen",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.fromLTRB(16, 8, 16, 8),
+            child: Text("Bitte initiale Einstellungen auswählen. Diese Auswahl kann jederzeit in den Einstellungen wieder geändert werden."),
+          ),
+          Row(children: [
+            Padding(
+              padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
+              child: Text("Online Modus:"),
+            ),
+            Padding(
+              padding: EdgeInsets.fromLTRB(0, 8, 16, 0),
+              child: OnlineModeButton(_onlineMode),
+            ),
+          ]),
+          Padding(
+            padding: EdgeInsets.fromLTRB(48, 0, 16, 8),
+            child: Text(
+              GetIt.instance.get<OnlineService>().getDescription(_onlineMode),
+              softWrap: true,
+              maxLines: 10,
+            ),
+          ),
+          RaisedButton(
+              child: Text("OK"),
+              onPressed: () {
+                setState(() {
+                  _initialSettingsActive = false;
+                });
+              }),
+        ],
+      ),
+    );
   }
 }
