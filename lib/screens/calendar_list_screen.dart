@@ -11,6 +11,7 @@ import 'package:mensa_jt21/calendar/favorites_service.dart';
 import 'package:mensa_jt21/initialize/debug_settings.dart';
 import 'package:mensa_jt21/online/online_service.dart';
 import 'package:mensa_jt21/screens/debug_screen.dart';
+import 'package:mensa_jt21/screens/information_screens.dart';
 import 'package:mensa_jt21/screens/settings_screen.dart';
 
 class CalendarListScreen extends StatefulWidget {
@@ -343,6 +344,13 @@ class CalendarListScreenState extends State<CalendarListScreen> {
         },
       ),
     );
+    drawerEntries.add(ListTile(
+      title: Text('Information'),
+      onTap: () {
+        Navigator.pop(context);
+        Navigator.pushNamed(context, DefaultInformationScreen.routeName);
+      },
+    ));
     return Drawer(
       child: ListView(
         padding: EdgeInsets.zero,
@@ -395,7 +403,9 @@ class CalendarListScreenState extends State<CalendarListScreen> {
 
   void _toggleFavoriteState(BuildContext context, CalendarEntry event) {
     final isNowFavorite = GetIt.instance.get<FavoritesService>().toggleFavorite(event.eventId);
-    if (_onlyFavorites && !isNowFavorite && (_sorting == CalendarSorting.ALL_BY_DATE || _sorting == CalendarSorting.GROUP_BY_DATE)) {
+    if (_onlyFavorites &&
+        !isNowFavorite &&
+        (_sorting == CalendarSorting.ALL_BY_DATE || _sorting == CalendarSorting.GROUP_BY_DATE || _sorting == CalendarSorting.GROUP_BY_TYPE)) {
       Scaffold.of(context).showSnackBar(SnackBar(
         content: Text((event.takesPlace ? "Veranstaltung \"" : "Abgesagte Veranstaltung \"") + event.name + "\" entfernt"),
         action: event.takesPlace
@@ -502,46 +512,68 @@ class CalendarListScreenState extends State<CalendarListScreen> {
       appBar: AppBar(
         title: const Text("Mensa JT21"),
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
-            child: Text(
-              "Einstellungen",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-            ),
-          ),
-          Padding(
-            padding: EdgeInsets.fromLTRB(16, 8, 16, 8),
-            child: Text("Bitte initiale Einstellungen auswählen. Diese Auswahl kann jederzeit in den Einstellungen wieder geändert werden."),
-          ),
-          Row(children: [
-            Padding(
-              padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
-              child: Text("Online Modus:"),
-            ),
-            Padding(
-              padding: EdgeInsets.fromLTRB(0, 8, 16, 0),
-              child: OnlineModeButton(_onlineMode),
-            ),
-          ]),
-          Padding(
-            padding: EdgeInsets.fromLTRB(48, 0, 16, 8),
-            child: Text(
-              GetIt.instance.get<OnlineService>().getDescription(_onlineMode),
-              softWrap: true,
-              maxLines: 10,
-            ),
-          ),
-          RaisedButton(
-              child: Text("OK"),
-              onPressed: () {
-                setState(() {
-                  _initialSettingsActive = false;
-                });
-              }),
-        ],
+      body: ListView(
+        children: _initialScreenElements(),
       ),
     );
+  }
+
+  List<Widget> _initialScreenElements() {
+    List<Widget> elements = List();
+    elements.add(Image(image: AssetImage('resources/images/splash.png')));
+    elements.add(Padding(
+      padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
+      child: Text(
+        "Willkommen beim Mensa Jahrestreffen!",
+        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
+      ),
+    ));
+    elements.add(Padding(
+      padding: EdgeInsets.fromLTRB(16, 8, 16, 8),
+      child: Text("Bitte die initialen Einstellungen auswählen. "
+          "Diese Auswahl kann jederzeit in den Einstellungen (erreichbar über das Menü rechts oben im Veranstaltungskalender) wieder geändert werden."),
+    ));
+    elements.add(Row(children: [
+      Padding(
+        padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
+        child: Text("Online Modus:"),
+      ),
+      Padding(
+        padding: EdgeInsets.fromLTRB(0, 8, 16, 0),
+        child: OnlineModeButton(_onlineMode),
+      ),
+    ]));
+    elements.add(Padding(
+      padding: EdgeInsets.fromLTRB(48, 0, 16, 8),
+      child: Text(
+        GetIt.instance.get<OnlineService>().getDescription(_onlineMode),
+        softWrap: true,
+        maxLines: 10,
+      ),
+    ));
+    if (DebugSettings.debugModeAvailable) {
+      elements.add(Padding(
+          padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
+          child: Text(
+            "Hinweis:",
+            style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold).copyWith(fontSize: 18),
+          )));
+      elements.add(Padding(
+        padding: EdgeInsets.fromLTRB(16, 8, 16, 8),
+        child: Text("In dieser Version der App steht der 'Debug-Modus' zur Verfügung. Dieser ist anfangs ausgeschaltet, "
+            "und kann aktiviert werden, indem im Dialog 'Über die App' lange auf den 'OK' Button gedrückt wird. "
+            "Im Debug-Modus steht über das Menü rechts oben ein weiterer Bildschirm zur Verfügung, "
+            "über den simuliert werden kann, dass einzelne Veranstaltungen abgesagt werden "
+            "und damit eine neue Version des Veranstaltungs-Files auf dem Server vorliegt."),
+      ));
+    }
+    elements.add(RaisedButton(
+        child: Text("OK"),
+        onPressed: () {
+          setState(() {
+            _initialSettingsActive = false;
+          });
+        }));
+    return elements;
   }
 }

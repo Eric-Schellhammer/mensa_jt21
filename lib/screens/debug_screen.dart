@@ -41,7 +41,7 @@ class DebugScreenState extends State<DebugScreen> {
         body: Column(
           children: [
             Row(children: [
-              Text("Simuliere: Veranstaltung nr "),
+              Text("Simuliere: Veranstaltung nr #"),
               SizedBox(
                 width: 50,
                 child: TextField(
@@ -68,18 +68,6 @@ class DebugScreenState extends State<DebugScreen> {
                     },
             ),
             RaisedButton(
-              child: Text("App auf initiale Installation zurücksetzen"),
-              onPressed: () {
-                GetIt.instance.get<DebugSettings>().activateDebugMode = false;
-                GetIt.instance.get<OnlineService>().resetToInitial();
-                GetIt.instance.get<FavoritesService>().resetToInitial();
-                GetIt.instance.get<CalendarSettingsService>().resetToInitial();
-                // add further resetting here
-                _resetSimulation();
-                Navigator.of(context).pop();
-              },
-            ),
-            RaisedButton(
               child: Text("Debug-Mode ausschalten"),
               onPressed: GetIt.instance.get<DebugSettings>().isDebugModeActive()
                   ? () {
@@ -89,6 +77,24 @@ class DebugScreenState extends State<DebugScreen> {
                       });
                     }
                   : null,
+            ),
+            Text(GetIt.instance.get<DebugSettings>().isDebugModeActive()
+                ? ""
+                : "Der Debug-Mode lässt sich wieder anschalten, indem im Dialog 'Über die App' lange auf 'OK' gedrückt wird."),
+            Padding(
+              padding: EdgeInsets.only(top: 16),
+              child: RaisedButton(
+                child: Text("App auf initiale Installation zurücksetzen"),
+                onPressed: () {
+                  GetIt.instance.get<DebugSettings>().activateDebugMode = false;
+                  GetIt.instance.get<OnlineService>().resetToInitial();
+                  GetIt.instance.get<FavoritesService>().resetToInitial();
+                  GetIt.instance.get<CalendarSettingsService>().resetToInitial();
+                  // add further resetting here
+                  _resetSimulation();
+                  Navigator.of(context).pop();
+                },
+              ),
             ),
           ],
         ));

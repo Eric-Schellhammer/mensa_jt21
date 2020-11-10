@@ -27,7 +27,7 @@ class CalendarListEntryWidget extends StatelessWidget {
                   Row(
                     children: [
                       Padding(
-                        padding: EdgeInsets.fromLTRB(0, 8, 8, 8),
+                        padding: EdgeInsets.fromLTRB(0, 0, 8, 0),
                         child: new FavoriteButton(calendarEntry),
                       ),
                       Expanded(
@@ -54,7 +54,7 @@ class CalendarListEntryWidget extends StatelessWidget {
 
   List<Widget> _getEntryElements(BuildContext context) {
     List<Widget> elements = List();
-    if (isDebugModeActive) elements.add(Text(calendarEntry.eventId.toString() + " (" + calendarEntry.eventGroupId.toString() + ")"));
+    if (isDebugModeActive) elements.add(Text("Veranstaltung nr #" + calendarEntry.eventId.toString()));
     elements.add(Text(
       calendarEntry.name,
       softWrap: true,

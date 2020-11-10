@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mensa_jt21/screens/debug_screen.dart';
+import 'package:mensa_jt21/screens/information_screens.dart';
 import 'package:mensa_jt21/screens/settings_screen.dart';
 
 import 'initialize/application_config.dart';
@@ -23,6 +24,7 @@ class MensaJT21 extends StatelessWidget {
       routes: {
         SettingsScreen.routeName: (ctx) => SettingsScreen(),
         CalendarListScreen.routeName: (ctx) => CalendarListScreen(),
+        DefaultInformationScreen.routeName: (ctx) => DefaultInformationScreen(),
         DebugScreen.routeName: (ctx) => DebugScreen(),
       },
     );
