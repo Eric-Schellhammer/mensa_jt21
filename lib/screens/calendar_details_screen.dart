@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
+import 'package:mensa_jt21/calendar/calendar_group_entry.dart';
 import 'package:mensa_jt21/calendar/calendar_service.dart';
 import 'package:mensa_jt21/calendar/calendar_widgets.dart';
 import 'package:mensa_jt21/calendar/favorites_service.dart';
@@ -10,19 +11,27 @@ import 'package:mensa_jt21/online/online_service.dart';
 
 class CalendarDetailsScreen extends StatefulWidget {
   final CalendarEntry calendarEntry;
+  final CalendarEntryGroup calendarEntryGroup;
 
-  const CalendarDetailsScreen({Key key, this.calendarEntry}) : super(key: key);
+  const CalendarDetailsScreen({Key key, this.calendarEntry, this.calendarEntryGroup}) : super(key: key);
 
   @override
   createState() => CalendarDetailsScreenState();
 }
 
+enum _GroupMode { SINGLE, SELECTED, ALL }
+
 class CalendarDetailsScreenState extends State<CalendarDetailsScreen> {
-  get calendarEntry {
-    return widget.calendarEntry;
+  CalendarEntry get calendarEntry {
+    return widget.calendarEntry != null ? widget.calendarEntry : widget.calendarEntryGroup.entries[0];
   }
 
-  List<String> blacklistedElements;
+  CalendarEntryGroup get calendarEntryGroup {
+    return widget.calendarEntryGroup;
+  }
+
+  bool loadImages = false;
+  _GroupMode _groupMode;
 
   @override
   void initState() {
@@ -32,17 +41,11 @@ class CalendarDetailsScreenState extends State<CalendarDetailsScreen> {
       favoriteService.toggleFavorite(calendarEntry.eventId);
       if (mounted) setState(() {});
     });
-    switch (GetIt.instance.get<OnlineService>().getOnlineModeOnce()) {
-      case OnlineMode.INITIAL:
-      case OnlineMode.OFFLINE:
-      case OnlineMode.MANUAL:
-      case OnlineMode.AUTOMATIC:
-      case OnlineMode.ON_DEMAND:
-        blacklistedElements = ["img"];
-        break;
-      case OnlineMode.ONLINE:
-        blacklistedElements = [];
-        break;
+    loadImages = GetIt.instance.get<OnlineService>().getOnlineModeOnce() == OnlineMode.ONLINE;
+    if (calendarEntryGroup == null || calendarEntryGroup.entries.length == 1)
+      _groupMode = _GroupMode.SINGLE;
+    else {
+      _groupMode = widget.calendarEntry != null ? _GroupMode.SELECTED : _GroupMode.ALL;
     }
   }
 
@@ -68,32 +71,97 @@ class CalendarDetailsScreenState extends State<CalendarDetailsScreen> {
       softWrap: true,
       style: TextStyle(fontWeight: FontWeight.bold).copyWith(fontSize: 20),
     ));
-    if (calendarEntry.abgesagt)
-      entries.add(
-        Padding(
-            padding: EdgeInsets.only(top: 8),
-            child: Column(
-              children: [
-                Text(
-                  "Veranstaltung wurde abgesagt!",
-                  style: TextStyle(fontSize: 20).copyWith(color: Colors.red),
-                ),
-              ],
-            )),
-      );
-    entries.add(_subtitle("Beschreibung"));
-    entries.add(Html(
-      data: calendarEntry.eventtext,
-      blacklistedElements: blacklistedElements,
-    ));
-    entries.add(_subtitle("Allgemeine Informationen"));
-    entries.addAll(_getGeneral());
-    entries.add(_subtitle("Terminspezifische Informationen"));
-    entries.add(_getSpecific());
+    switch (_groupMode) {
+      case _GroupMode.SINGLE:
+        _addSingleEventEntries(entries);
+        break;
+      case _GroupMode.SELECTED:
+        _addSelectedEventEntries(entries);
+        break;
+      case _GroupMode.ALL:
+        _addEventGroupEntries(entries);
+        break;
+    }
     return entries;
   }
 
-  Widget _subtitle(String title) {
+  List<Widget> _addSingleEventEntries(List<Widget> entries) {
+    entries.add(Text("Einmalige Veranstaltung:"));
+    entries.add(StartTimeLine(calendarEntry));
+    if (calendarEntry.abgesagt) entries.add(_subtitleCancelled("Veranstaltung wurde abgesagt!"));
+    _addDescription(entries);
+    entries.add(_subsectionTitle("Weitere Informationen"));
+    entries.add(_getShortForDate(entry: calendarEntry));
+    entries.addAll(_getSingleGeneral(calendarEntry));
+    return entries;
+  }
+
+  List<Widget> _addSelectedEventEntries(List<Widget> entries) {
+    entries.add(Text("Ausgewählte Veranstaltung:"));
+    entries.add(StartTimeLine(calendarEntry));
+    if (calendarEntry.abgesagt) {
+      if (calendarEntryGroup.isAllCancelled)
+        entries.add(_subtitleCancelled("Veranstaltungsreihe wurde komplett abgesagt!"));
+      else
+        entries.add(_subtitleCancelled("Ausgewählte Veranstaltung wurde abgesagt."));
+    }
+    _addDescription(entries);
+    entries.add(_subsectionTitle("Allgemeine Informationen"));
+    entries.addAll(_getSingleGeneral(calendarEntry));
+    entries.add(_subsectionTitle("Terminspezifische Informationen"));
+    entries.add(_getShortForDate(entry: calendarEntry));
+    entries.add(_subsectionTitle("Weitere Termine"));
+    calendarEntryGroup.entries.where((entry) => entry.eventId != calendarEntry.eventId).forEach((entry) {
+      entries.add(_getShortForDate(entry: entry));
+    });
+    return entries;
+  }
+
+  List<Widget> _addEventGroupEntries(List<Widget> entries) {
+    if (calendarEntryGroup.isAllCancelled) entries.add(_subtitleCancelled("Veranstaltungsreihe wurde komplett abgesagt!"));
+    _addDescription(entries);
+    List<PropertySelector> commonSelectors = List();
+    List<PropertySelector> specificSelectors = List();
+    _getSelectors().forEach((selector) {
+      if (calendarEntryGroup.entries.any((element) => !selector.areEqual(calendarEntry, element)))
+        specificSelectors.add(selector);
+      else
+        commonSelectors.add(selector);
+    });
+    entries.add(_subsectionTitle("Allgemeine Informationen"));
+    commonSelectors.forEach((selector) {
+      selector.addWidget(entries, calendarEntry);
+    });
+    entries.add(_subsectionTitle("Terminspezifische Informationen"));
+    calendarEntryGroup.entries.forEach((entry) {
+      entries.add(_getShortForDate(entry: entry, selectors: specificSelectors));
+    });
+    return entries;
+  }
+
+  Widget _subtitleCancelled(String text) {
+    Padding(
+        padding: EdgeInsets.only(top: 8),
+        child: Column(
+          children: [
+            Text(
+              text,
+              style: TextStyle(fontSize: 20).copyWith(color: Colors.red),
+            ),
+          ],
+        ));
+  }
+
+  void _addDescription(List<Widget> entries) {
+    if (loadImages && calendarEntry.bild != null) entries.add(Html(data: "<img src=\"" + calendarEntry.bild + "\" alt=\"" + calendarEntry.bildtitel + "\">"));
+    entries.add(_subsectionTitle("Beschreibung"));
+    entries.add(Html(
+      data: calendarEntry.eventtext,
+      blacklistedElements: loadImages ? [] : ["img"],
+    ));
+  }
+
+  Widget _subsectionTitle(String title) {
     return Padding(
       padding: EdgeInsets.fromLTRB(0, 16, 0, 8),
       child: Container(
@@ -109,43 +177,23 @@ class CalendarDetailsScreenState extends State<CalendarDetailsScreen> {
     );
   }
 
-  List<Widget> _getGeneral() {
+  List<Widget> _getSingleGeneral(CalendarEntry entry) {
     List<Widget> entries = List();
-    TitleAndElement.addIfNotNull(entries, "Kategorie", calendarEntry.kategorie);
-    TitleAndElement.addIfNotNull(entries, "Anbieter", calendarEntry.anbieter);
-    if (calendarEntry.dauer != null) {
-      entries.add(TitleAndElement(title: "Dauer", value: Text(calendarEntry.dauer.toString() + " Minuten")));
-    }
-    entries.add(TitleAndElement(
-      title: "Ort",
-      value: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(calendarEntry.location ?? ""),
-          Text(calendarEntry.strasse ?? ""),
-          Text((calendarEntry.plz ?? "") + " " + (calendarEntry.ortsname ?? "")),
-        ],
-      ),
-    ));
-    TitleAndElement.addIfNotNull(entries, "Gebäude", calendarEntry.gebaeude);
-    TitleAndElement.addIfNotNull(entries, "Raum", calendarEntry.raum);
-    TitleAndElement.addIfNotNull(entries, "Wordpress", calendarEntry.wordpress);
-    TitleAndElement.addIfNotNull(entries, "Barrierefreiheit", calendarEntry.barrierefreiheit);
-    TitleAndElement.addIfNotNull(entries, "Haltestelle", calendarEntry.haltestelle);
-    if (calendarEntry.lat != null && double.parse(calendarEntry.lat) != 0)
-      entries.add(TitleAndElement(title: "Koordinaten", value: Text("N" + calendarEntry.lat + "° E" + calendarEntry.lon + "°")));
+    _getSelectors().forEach((element) {
+      element.addWidget(entries, entry);
+    });
     return entries;
   }
 
-  Widget _getSpecific() {
+  Widget _getShortForDate({CalendarEntry entry, List<PropertySelector> selectors = null}) {
     final Row row = Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        FavoriteButton(calendarEntry),
-        Expanded(child: Column(children: _getSpecificEntries())),
+        FavoriteButton(entry),
+        Expanded(child: Column(children: _getSpecificEntries(entry, selectors))),
       ],
     );
-    return calendarEntry.takesPlace
+    return entry.takesPlace
         ? row
         : Column(
             children: [
@@ -161,22 +209,124 @@ class CalendarDetailsScreenState extends State<CalendarDetailsScreen> {
           );
   }
 
-  List<Widget> _getSpecificEntries() {
-    final textStyle = CalendarEntryTextStyle(calendarEntry);
+  List<Widget> _getSpecificEntries(CalendarEntry entry, List<PropertySelector> selectors) {
+    final textStyle = CalendarEntryTextStyle(entry);
     List<Widget> entries = List();
     entries.add(TitleAndElement(
       title: "Start",
-      value: StartTimeLine(calendarEntry),
+      value: StartTimeLine(entry),
       textStyle: textStyle,
     ));
     entries.add(TitleAndElement(
       title: "Abmarsch",
       value: Text(
-        DateFormat("HH:mm 'Uhr'").format(calendarEntry.abmarsch),
+        DateFormat("HH:mm 'Uhr'").format(entry.abmarsch),
         style: textStyle,
       ),
       textStyle: textStyle,
     ));
+    if (selectors != null)
+      selectors.forEach((selector) {
+        selector.addWidget(entries, entry);
+      });
     return entries;
+  }
+
+  static List<PropertySelector> _listOfSelectors;
+
+  static List<PropertySelector> _getSelectors() {
+    if (_listOfSelectors == null) {
+      _listOfSelectors = List();
+      _listOfSelectors.add(TextPropertySelector("Kategorie", (entry) => entry.kategorie));
+      _listOfSelectors.add(TextPropertySelector("Anbieter", (entry) => entry.anbieter));
+      _listOfSelectors.add(LengthSelector());
+      _listOfSelectors.add(LocationSelector());
+      _listOfSelectors.add(TextPropertySelector("Gebäude", (entry) => entry.gebaeude));
+      _listOfSelectors.add(TextPropertySelector("Raum", (entry) => entry.raum));
+      _listOfSelectors.add(TextPropertySelector("Wordpress", (entry) => entry.wordpress));
+      _listOfSelectors.add(TextPropertySelector("Barrierefreiheit", (entry) => entry.barrierefreiheit));
+      _listOfSelectors.add(TextPropertySelector("Haltestelle", (entry) => entry.haltestelle));
+      _listOfSelectors.add(CoordinatesSelector());
+    }
+    return _listOfSelectors;
+  }
+}
+
+// TODO sort names entry/element/entries/calendarEntry
+
+abstract class PropertySelector {
+  bool areEqual(CalendarEntry e1, CalendarEntry e2);
+
+  void addWidget(List<Widget> entries, CalendarEntry entry);
+}
+
+abstract class SinglePropertySelector extends PropertySelector {
+  final Function(CalendarEntry) selector;
+
+  SinglePropertySelector(this.selector);
+
+  @override
+  bool areEqual(CalendarEntry e1, CalendarEntry e2) {
+    final val1 = selector.call(e1);
+    final val2 = selector.call(e2);
+    if (val1 == null)
+      return val2 == null;
+    else
+      return val1 == val2;
+  }
+}
+
+class TextPropertySelector extends SinglePropertySelector {
+  final String name;
+
+  TextPropertySelector(this.name, String Function(CalendarEntry) selector) : super(selector);
+
+  @override
+  void addWidget(List<Widget> entries, CalendarEntry entry) {
+    return TitleAndElement.addIfNotNull(entries, name, selector.call(entry)); // TODO set style
+  }
+}
+
+class LengthSelector extends SinglePropertySelector {
+  LengthSelector() : super((entry) => entry.dauer);
+
+  @override
+  void addWidget(List<Widget> entries, CalendarEntry entry) {
+    entries.add(TitleAndElement(title: "Dauer", value: Text(entry.dauer.toString() + " Minuten"))); // TODO set style
+  }
+}
+
+class CoordinatesSelector extends PropertySelector {
+  @override
+  void addWidget(List<Widget> entries, CalendarEntry entry) {
+    if (entry.lat != null && double.parse(entry.lat) != 0)
+      entries.add(TitleAndElement(title: "Koordinaten", value: Text("N" + entry.lat + "° E" + entry.lon + "°")));
+  }
+
+  @override
+  bool areEqual(CalendarEntry e1, CalendarEntry e2) {
+    return (e1.lat == e2.lat && e1.lon == e2.lon);
+  }
+}
+
+class LocationSelector extends PropertySelector {
+  @override
+  void addWidget(List<Widget> entries, CalendarEntry entry) {
+    entries.add(TitleAndElement(
+      title: "Ort",
+      value: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(entry.location ?? ""),
+          Text(entry.strasse ?? ""),
+          Text((entry.plz ?? "") + " " + (entry.ortsname ?? "")),
+        ],
+      ),
+    ));
+  }
+
+  @override
+  bool areEqual(CalendarEntry e1, CalendarEntry e2) {
+    return (e1.location == e2.location) && (e1.strasse == e2.strasse) && (e1.plz == e2.plz) && (e1.ortsname == e2.ortsname);
   }
 }

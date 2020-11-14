@@ -1,10 +1,12 @@
 
 
+details page: picture, load from https://event-orga.mensa.de/getImage.php?h=300&jt=jt2021&name=e006_Schloss-Ludwigsburg_1.jpg
+
 details page: add list of dates, with favorite icon, like in Grouping view
 
 
 
-details page: picture, load from https://event-orga.mensa.de/getImage.php?h=300&jt=jt2021&name=e006_Schloss-Ludwigsburg_1.jpg
+
 
 automatic reload
 
@@ -14,3 +16,6 @@ Suche
 
 include picture in list entry
 
+
+
+Broschüre B6
