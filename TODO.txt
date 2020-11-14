@@ -12,6 +12,7 @@ Suche
 
 include picture in list entry
 
+Zurücksetzen auf initial: reset "only favorites" setting
 
 
 Broschüre B6
