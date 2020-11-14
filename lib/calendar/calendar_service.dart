@@ -169,7 +169,7 @@ class CalendarEntry implements Comparable<CalendarEntry> {
         raum: json["raum"],
         lat: json["lat"],
         lon: json["lon"],
-        abmarsch: DateTime.parse("2020-01-01 " + json["abmarsch"]),
+        abmarsch: parseAbmarsch(json["abmarsch"]),
         abgesagt: json["abgesagt"] != "0",
         wordpress: json["wordpress"],
         eventtext: json["eventtext"],
@@ -186,5 +186,12 @@ class CalendarEntry implements Comparable<CalendarEntry> {
   @override
   int compareTo(CalendarEntry other) {
     return CascadedComparator(this, other).then((ce) => ce.start).then((ce) => ce.name).calculate();
+  }
+
+  static DateTime parseAbmarsch(String abmarsch) {
+    if (abmarsch == null || abmarsch.isEmpty || abmarsch == "00:00:00")
+      return null;
+    else
+      return DateTime.parse("2020-01-01 " + abmarsch);
   }
 }

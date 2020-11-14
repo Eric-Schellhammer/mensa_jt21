@@ -29,6 +29,8 @@ class CalendarListScreenState extends State<CalendarListScreen> {
   static const MENU_ABOUT = 'Über die App';
 
   List<CalendarEntry> _allEventsByDate = List();
+  List<CalendarEntry> _selectedEventsByDate;
+  Map<int, CalendarEntryGroup> _selectedEventsByType;
   List<Widget> _displayedWidgets = List();
   CalendarSorting _sorting = CalendarSorting.EMPTY;
   DateTime _selectedDate;
@@ -427,23 +429,23 @@ class CalendarListScreenState extends State<CalendarListScreen> {
     FavoriteButton.initialize(_favoritesService, (context, event) {
       _toggleFavoriteState(context, event);
     });
+    _refreshFilter();
     _displayedWidgets = List();
-    if (_allEventsByDate == null || _allEventsByDate.isEmpty) return;
+    if (_selectedEventsByDate == null || _selectedEventsByDate.isEmpty) return;
     final effSorting = _onlyFavorites ? CalendarSorting.ALL_BY_DATE : _sorting;
     final bool Function(CalendarEntry) filterByFavorites = _onlyFavorites ? (entry) => _favoritesService.isFavorite(entry.eventId) : (__) => true;
-    final bool Function(CalendarEntry) filterByRestricted = _includeRestricted ? (__) => true : (entry) => entry.barrierefreiheit != "Nicht rollstuhltauglich";
     switch (effSorting) {
       case CalendarSorting.EMPTY:
         break;
       case CalendarSorting.ALL_BY_DATE:
         DateTime lastDay;
-        _allEventsByDate.where(filterByFavorites).where(filterByRestricted).forEach((eventEntry) {
+        _selectedEventsByDate.where(filterByFavorites).forEach((eventEntry) {
           final DateTime currentDay = _getDate(eventEntry.start);
           if (lastDay == null || lastDay != currentDay) {
             _displayedWidgets.add(_createDateHeader(eventEntry.start));
             lastDay = currentDay;
           }
-          _displayedWidgets.add(new CalendarListEntryWidget(eventEntry));
+          _displayedWidgets.add(new CalendarListEntryWidget(eventEntry, _selectedEventsByType[eventEntry.eventGroupId]));
         });
         if (_displayedWidgets.isEmpty && _onlyFavorites) {
           _displayedWidgets.add(Padding(
@@ -466,22 +468,29 @@ class CalendarListScreenState extends State<CalendarListScreen> {
           _selectedDate = _getDate(_allEventsByDate[0].start);
         }
         _displayedWidgets.add(_createDateHeader(_selectedDate));
-        _allEventsByDate.where(filterByRestricted).where((eventEntry) => _getDate(eventEntry.start) == _selectedDate).forEach((eventEntry) {
-          _displayedWidgets.add(new CalendarListEntryWidget(eventEntry));
+        _selectedEventsByDate.where((eventEntry) => _getDate(eventEntry.start) == _selectedDate).forEach((eventEntry) {
+          _displayedWidgets.add(new CalendarListEntryWidget(eventEntry, _selectedEventsByType[eventEntry.eventGroupId]));
         });
         break;
       case CalendarSorting.GROUP_BY_TYPE:
-        final Map<int, CalendarEntryGroup> entriesByType = Map();
-        _allEventsByDate.where(filterByRestricted).forEach((eventEntry) {
-          entriesByType.putIfAbsent(eventEntry.eventGroupId, () => CalendarEntryGroup()).entries.add(eventEntry);
-        });
-        final List<CalendarEntryGroup> groups = entriesByType.values.toList();
+        final List<CalendarEntryGroup> groups = _selectedEventsByType.values.toList();
         groups.sort();
         groups.forEach((group) {
           _displayedWidgets.add(CalendarGroupListWidget(group));
         });
         break;
     }
+  }
+
+  void _refreshFilter() {
+    _selectedEventsByDate = List();
+    _selectedEventsByType = Map();
+    if (_allEventsByDate == null || _allEventsByDate.isEmpty) return;
+    final bool Function(CalendarEntry) filterByRestricted = _includeRestricted ? (__) => true : (entry) => entry.barrierefreiheit != "Nicht rollstuhltauglich";
+    _selectedEventsByDate = _allEventsByDate.where(filterByRestricted).toList();
+    _allEventsByDate.where(filterByRestricted).forEach((eventEntry) {
+      _selectedEventsByType.putIfAbsent(eventEntry.eventGroupId, () => CalendarEntryGroup()).entries.add(eventEntry);
+    });
   }
 
   Widget _createDateHeader(DateTime date) {
@@ -570,13 +579,15 @@ class CalendarListScreenState extends State<CalendarListScreen> {
             "und damit eine neue Version des Veranstaltungs-Files auf dem Server vorliegt."),
       ));
     }
-    elements.add(RaisedButton(
-        child: Text("OK"),
-        onPressed: () {
-          setState(() {
-            _initialSettingsActive = false;
-          });
-        }));
+    elements.add(Padding(
+        padding: EdgeInsets.only(bottom: 16),
+        child: RaisedButton(
+            child: Text("OK"),
+            onPressed: () {
+              setState(() {
+                _initialSettingsActive = false;
+              });
+            })));
     return elements;
   }
 }

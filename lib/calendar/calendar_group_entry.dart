@@ -49,19 +49,30 @@ class CalendarGroupListWidget extends StatelessWidget {
   }
 
   Widget _getHeader(BuildContext context, CalendarEntry calendarEntry) {
-    return Theme(
-      data: Theme.of(context).copyWith(
-        textTheme: TextTheme(
-          bodyText2: TextStyle(
-            color: group.isAllCancelled ? Colors.grey : Colors.black,
-            decoration: group.isAllCancelled ? TextDecoration.lineThrough : null,
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => CalendarDetailsScreen(
+                calendarEntryGroup: group,
+              ),
+            ));
+      },
+      child: Theme(
+        data: Theme.of(context).copyWith(
+          textTheme: TextTheme(
+            bodyText2: TextStyle(
+              color: group.isAllCancelled ? Colors.grey : Colors.black,
+              decoration: group.isAllCancelled ? TextDecoration.lineThrough : null,
+            ),
           ),
         ),
+        // additional Builder to transfer the Theme defined above
+        child: Builder(builder: (BuildContext context) {
+          return Column(crossAxisAlignment: CrossAxisAlignment.start, children: _getHeaderEntries(context, calendarEntry));
+        }),
       ),
-      // additional Builder to transfer the Theme defined above
-      child: Builder(builder: (BuildContext context) {
-        return Column(crossAxisAlignment: CrossAxisAlignment.start, children: _getHeaderEntries(context, calendarEntry));
-      }),
     );
   }
 
@@ -103,7 +114,10 @@ class CalendarGroupListWidget extends StatelessWidget {
           Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => CalendarDetailsScreen(calendarEntry: entry),
+                builder: (context) => CalendarDetailsScreen(
+                  calendarEntry: entry,
+                  calendarEntryGroup: group,
+                ),
               ));
         },
         child: StartTimeLine(entry),

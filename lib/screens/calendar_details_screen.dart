@@ -86,7 +86,10 @@ class CalendarDetailsScreenState extends State<CalendarDetailsScreen> {
   }
 
   List<Widget> _addSingleEventEntries(List<Widget> entries) {
-    entries.add(Text("Einmalige Veranstaltung:"));
+    entries.add(Padding(
+      padding: EdgeInsets.only(top: 8),
+      child: Text("Einmalige Veranstaltung:"),
+    ));
     entries.add(StartTimeLine(calendarEntry));
     if (calendarEntry.abgesagt) entries.add(_subtitleCancelled("Veranstaltung wurde abgesagt!"));
     _addDescription(entries);
@@ -97,13 +100,16 @@ class CalendarDetailsScreenState extends State<CalendarDetailsScreen> {
   }
 
   List<Widget> _addSelectedEventEntries(List<Widget> entries) {
-    entries.add(Text("Ausgewählte Veranstaltung:"));
+    entries.add(Padding(
+      padding: EdgeInsets.only(top: 8),
+      child: Text("Ausgewählter Termin:"),
+    ));
     entries.add(StartTimeLine(calendarEntry));
     if (calendarEntry.abgesagt) {
       if (calendarEntryGroup.isAllCancelled)
         entries.add(_subtitleCancelled("Veranstaltungsreihe wurde komplett abgesagt!"));
       else
-        entries.add(_subtitleCancelled("Ausgewählte Veranstaltung wurde abgesagt."));
+        entries.add(_subtitleCancelled("Ausgewählter Termin wurde abgesagt."));
     }
     _addDescription(entries);
     entries.add(_subsectionTitle("Allgemeine Informationen"));
@@ -112,7 +118,7 @@ class CalendarDetailsScreenState extends State<CalendarDetailsScreen> {
     entries.add(_getShortForDate(entry: calendarEntry));
     entries.add(_subsectionTitle("Weitere Termine"));
     calendarEntryGroup.entries.where((entry) => entry.eventId != calendarEntry.eventId).forEach((entry) {
-      entries.add(_getShortForDate(entry: entry));
+      entries.add(_getShortForDate(entry: entry, withNavigation: true));
     });
     return entries;
   }
@@ -134,13 +140,13 @@ class CalendarDetailsScreenState extends State<CalendarDetailsScreen> {
     });
     entries.add(_subsectionTitle("Terminspezifische Informationen"));
     calendarEntryGroup.entries.forEach((entry) {
-      entries.add(_getShortForDate(entry: entry, selectors: specificSelectors));
+      entries.add(_getShortForDate(entry: entry, selectors: specificSelectors, withNavigation: true));
     });
     return entries;
   }
 
   Widget _subtitleCancelled(String text) {
-    Padding(
+    return Padding(
         padding: EdgeInsets.only(top: 8),
         child: Column(
           children: [
@@ -153,7 +159,15 @@ class CalendarDetailsScreenState extends State<CalendarDetailsScreen> {
   }
 
   void _addDescription(List<Widget> entries) {
-    if (loadImages && calendarEntry.bild != null) entries.add(Html(data: "<img src=\"" + calendarEntry.bild + "\" alt=\"" + calendarEntry.bildtitel + "\">"));
+    if (loadImages && calendarEntry.bild != null)
+      entries.add(
+        Html(
+            data: "<img src=\"https://event-orga.mensa.de/getImage.php?h=300&jt=jt2020&name=" +
+                calendarEntry.bild +
+                "\" alt=\"" +
+                calendarEntry.bildtitel +
+                "\" class=\"center\">"),
+      );
     entries.add(_subsectionTitle("Beschreibung"));
     entries.add(Html(
       data: calendarEntry.eventtext,
@@ -185,12 +199,28 @@ class CalendarDetailsScreenState extends State<CalendarDetailsScreen> {
     return entries;
   }
 
-  Widget _getShortForDate({CalendarEntry entry, List<PropertySelector> selectors = null}) {
+  Widget _getShortForDate({CalendarEntry entry, List<PropertySelector> selectors, bool withNavigation = false}) {
+    final Widget lines = Column(children: _getSpecificEntries(entry, selectors));
     final Row row = Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         FavoriteButton(entry),
-        Expanded(child: Column(children: _getSpecificEntries(entry, selectors))),
+        Expanded(
+            child: withNavigation
+                ? GestureDetector(
+                    onTap: () {
+                      Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => CalendarDetailsScreen(
+                              calendarEntry: entry,
+                              calendarEntryGroup: calendarEntryGroup,
+                            ),
+                          ));
+                    },
+                    child: lines,
+                  )
+                : lines),
       ],
     );
     return entry.takesPlace
@@ -212,19 +242,23 @@ class CalendarDetailsScreenState extends State<CalendarDetailsScreen> {
   List<Widget> _getSpecificEntries(CalendarEntry entry, List<PropertySelector> selectors) {
     final textStyle = CalendarEntryTextStyle(entry);
     List<Widget> entries = List();
-    entries.add(TitleAndElement(
-      title: "Start",
-      value: StartTimeLine(entry),
-      textStyle: textStyle,
-    ));
-    entries.add(TitleAndElement(
-      title: "Abmarsch",
-      value: Text(
-        DateFormat("HH:mm 'Uhr'").format(entry.abmarsch),
-        style: textStyle,
+    entries.add(Padding(
+      padding: EdgeInsets.only(top: 8),
+      child: TitleAndElement(
+        title: "Start",
+        value: StartTimeLine(entry),
+        textStyle: textStyle,
       ),
-      textStyle: textStyle,
     ));
+    if (entry.abmarsch != null)
+      entries.add(TitleAndElement(
+        title: "Abmarsch",
+        value: Text(
+          DateFormat("HH:mm 'Uhr'").format(entry.abmarsch),
+          style: textStyle,
+        ),
+        textStyle: textStyle,
+      ));
     if (selectors != null)
       selectors.forEach((selector) {
         selector.addWidget(entries, entry);

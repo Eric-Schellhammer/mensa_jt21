@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mensa_jt21/calendar/calendar_group_entry.dart';
 import 'package:mensa_jt21/calendar/calendar_service.dart';
 import 'package:mensa_jt21/calendar/calendar_widgets.dart';
 import 'package:mensa_jt21/screens/calendar_details_screen.dart';
@@ -7,8 +8,9 @@ class CalendarListEntryWidget extends StatelessWidget {
   static bool isDebugModeActive;
 
   final CalendarEntry calendarEntry;
+  final CalendarEntryGroup calendarEntryGroup;
 
-  const CalendarListEntryWidget(this.calendarEntry);
+  const CalendarListEntryWidget(this.calendarEntry, this.calendarEntryGroup);
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +30,7 @@ class CalendarListEntryWidget extends StatelessWidget {
                     children: [
                       Padding(
                         padding: EdgeInsets.fromLTRB(0, 0, 8, 0),
-                        child: new FavoriteButton(calendarEntry),
+                        child: FavoriteButton(calendarEntry),
                       ),
                       Expanded(
                         child: GestureDetector(
@@ -36,7 +38,10 @@ class CalendarListEntryWidget extends StatelessWidget {
                             Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => CalendarDetailsScreen(calendarEntry: calendarEntry),
+                                  builder: (context) => CalendarDetailsScreen(
+                                    calendarEntry: calendarEntry,
+                                    calendarEntryGroup: calendarEntryGroup,
+                                  ),
                                 ));
                           },
                           child: Column(
