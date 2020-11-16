@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
@@ -28,6 +29,8 @@ class CalendarListScreenState extends State<CalendarListScreen> {
   static const MENU_DEBUG = 'Debug';
   static const MENU_ABOUT = 'Über die App';
 
+  static const int _minSearchLength = 3;
+
   List<CalendarEntry> _allEventsByDate = List();
   List<CalendarEntry> _selectedEventsByDate;
   Map<int, CalendarEntryGroup> _selectedEventsByType;
@@ -40,6 +43,8 @@ class CalendarListScreenState extends State<CalendarListScreen> {
   bool _includeRestricted;
   bool _initialSettingsActive = false;
   bool _updateAvailable = false;
+  bool _searchActive = false;
+  final TextEditingController searchController = TextEditingController();
 
   @override
   void initState() {
@@ -59,6 +64,13 @@ class CalendarListScreenState extends State<CalendarListScreen> {
     final favoritesService = GetIt.instance.get<FavoritesService>();
     favoritesService.registerUpdateListener(() => _refreshList());
     favoritesService.initialize();
+    searchController.addListener(() {
+      if (_searchActive && searchController.text.length >= _minSearchLength - 1 && mounted) {
+        setState(() {
+          _transferEventsToWidgets();
+        });
+      }
+    });
   }
 
   @override
@@ -66,20 +78,65 @@ class CalendarListScreenState extends State<CalendarListScreen> {
     if (_onlineMode == OnlineMode.INITIAL || _initialSettingsActive) return _initialScreenScaffold(context);
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Mensa JT21"),
+        title: _searchActive ? _searchField() : const Text("Mensa JT21"),
         //leading: new Container(),
-        actions: <Widget>[
-          PopupMenuButton<String>(
-            onSelected: _handleMenuClick,
-            itemBuilder: (BuildContext context) {
-              return _getMenuEntries();
-            },
-          ),
-        ],
+        actions: _getActions(),
       ),
       drawer: _buildDrawer(),
       body: _buildList(),
     );
+  }
+
+  Widget _searchField() {
+    return TextField(
+      controller: searchController,
+      inputFormatters: [new FilteringTextInputFormatter.allow(RegExp("[a-zA-Z 0-9\\-]"))],
+      textInputAction: TextInputAction.done,
+      onEditingComplete: () {
+        if (searchController.text.length < _minSearchLength)
+          setState(() {
+            _searchActive = false;
+            _transferEventsToWidgets();
+          });
+        else
+          FocusScope.of(context).unfocus();
+      },
+      decoration: InputDecoration(
+        hintText: "Titelsuche",
+      ),
+    );
+  }
+
+  List<Widget> _getActions() {
+    List<Widget> actions = List();
+    if (_searchActive) {
+      actions.add(IconButton(
+        icon: Icon(Icons.cancel),
+        onPressed: () {
+          setState(() {
+            _searchActive = false;
+            _transferEventsToWidgets();
+          });
+        },
+      ));
+    } else {
+      actions.add(IconButton(
+        icon: Icon(Icons.search),
+        onPressed: () {
+          setState(() {
+            searchController.clear();
+            _searchActive = true;
+          });
+        },
+      ));
+    }
+    actions.add(PopupMenuButton<String>(
+      onSelected: _handleMenuClick,
+      itemBuilder: (BuildContext context) {
+        return _getMenuEntries();
+      },
+    ));
+    return actions;
   }
 
   List<PopupMenuItem<String>> _getMenuEntries() {
@@ -164,7 +221,7 @@ class CalendarListScreenState extends State<CalendarListScreen> {
                       "Mensa Jahrestreffen \"21",
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
-                    Text("Version 0.3, 04.11.2020"),
+                    Text("Version 0.9, 16.11.2020"),
                     Text(
                       "Entwickler:",
                       style: TextStyle(fontWeight: FontWeight.bold),
@@ -431,7 +488,10 @@ class CalendarListScreenState extends State<CalendarListScreen> {
     });
     _refreshFilter();
     _displayedWidgets = List();
-    if (_selectedEventsByDate == null || _selectedEventsByDate.isEmpty) return;
+    if (_selectedEventsByDate == null || _selectedEventsByDate.isEmpty) {
+      _displayedWidgets.add(_centralWarning("Keine passenden Veranstaltungen."));
+      return;
+    }
     final effSorting = _onlyFavorites ? CalendarSorting.ALL_BY_DATE : _sorting;
     final bool Function(CalendarEntry) filterByFavorites = _onlyFavorites ? (entry) => _favoritesService.isFavorite(entry.eventId) : (__) => true;
     switch (effSorting) {
@@ -448,13 +508,7 @@ class CalendarListScreenState extends State<CalendarListScreen> {
           _displayedWidgets.add(new CalendarListEntryWidget(eventEntry, _selectedEventsByType[eventEntry.eventGroupId]));
         });
         if (_displayedWidgets.isEmpty && _onlyFavorites) {
-          _displayedWidgets.add(Padding(
-              padding: EdgeInsets.fromLTRB(0, 32, 0, 32),
-              child: Center(
-                  child: Text(
-                "Keine Favoriten ausgewählt",
-                style: TextStyle(fontWeight: FontWeight.bold).copyWith(fontSize: 20),
-              ))));
+          _displayedWidgets.add(_centralWarning("Keine Favoriten ausgewählt"));
           _displayedWidgets.add(TextButton(
             onPressed: () => _updateStateAndRefreshList(() {
               _onlyFavorites = false;
@@ -482,13 +536,25 @@ class CalendarListScreenState extends State<CalendarListScreen> {
     }
   }
 
+  Widget _centralWarning(String text) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(0, 32, 0, 32),
+      child: Center(
+        child: Text(text, style: TextStyle(fontWeight: FontWeight.bold).copyWith(fontSize: 20)),
+      ),
+    );
+  }
+
   void _refreshFilter() {
     _selectedEventsByDate = List();
     _selectedEventsByType = Map();
     if (_allEventsByDate == null || _allEventsByDate.isEmpty) return;
     final bool Function(CalendarEntry) filterByRestricted = _includeRestricted ? (__) => true : (entry) => entry.barrierefreiheit != "Nicht rollstuhltauglich";
-    _selectedEventsByDate = _allEventsByDate.where(filterByRestricted).toList();
-    _allEventsByDate.where(filterByRestricted).forEach((eventEntry) {
+    final String searchText = searchController.text;
+    final bool Function(CalendarEntry) filterBySearch =
+        _searchActive && searchText.length >= _minSearchLength ? (entry) => entry.name.toLowerCase().contains(searchText.toLowerCase()) : (__) => true;
+    _selectedEventsByDate = _allEventsByDate.where(filterByRestricted).where(filterBySearch).toList();
+    _selectedEventsByDate.forEach((eventEntry) {
       _selectedEventsByType.putIfAbsent(eventEntry.eventGroupId, () => CalendarEntryGroup()).entries.add(eventEntry);
     });
   }
