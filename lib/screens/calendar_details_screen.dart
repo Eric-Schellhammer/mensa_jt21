@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:android_intent/android_intent.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
@@ -162,11 +165,8 @@ class CalendarDetailsScreenState extends State<CalendarDetailsScreen> {
     if (loadImages && calendarEntry.bild != null)
       entries.add(
         Html(
-            data: "<img src=\"https://event-orga.mensa.de/getImage.php?h=300&jt=jt2020&name=" +
-                calendarEntry.bild +
-                "\" alt=\"" +
-                calendarEntry.bildtitel +
-                "\" class=\"center\">"),
+            data:
+                "<img src=\"https://event-orga.mensa.de/getImage.php?h=300&jt=jt2020&name=" + calendarEntry.bild + "\" alt=\"" + calendarEntry.bildtitel + "\" class=\"center\">"),
       );
     entries.add(_subsectionTitle("Beschreibung"));
     entries.add(Html(
@@ -334,12 +334,43 @@ class CoordinatesSelector extends PropertySelector {
   @override
   void addWidget(List<Widget> entries, CalendarEntry entry) {
     if (entry.lat != null && double.parse(entry.lat) != 0)
-      entries.add(TitleAndElement(title: "Koordinaten", value: Text("N" + entry.lat + "° E" + entry.lon + "°")));
+      entries.add(TitleAndElement(
+        title: "Koordinaten",
+        value: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+          Column(children: [Text("N" + entry.lat + "°"), Text("E" + entry.lon + "°")]),
+          IconButton(
+            padding: EdgeInsets.only(left: 18),
+            constraints: BoxConstraints(),
+            icon: Icon(Icons.map),
+            onPressed: () => _openMap(entry.lat, entry.lon),
+          ),
+        ]),
+      ));
   }
 
   @override
   bool areEqual(CalendarEntry e1, CalendarEntry e2) {
     return (e1.lat == e2.lat && e1.lon == e2.lon);
+  }
+
+  void _openMap(String lat, String lon) {
+    //final String url = "https://www.google.com/maps/dir/?api=1&origin=" + origin + "&destination=" + destination + "&travelmode=driving&dir_action=navigate";
+    final String url = "https://www.google.com/maps/dir/?api=1&destination=" + lat + "," + lon;
+    if (Platform.isAndroid) {
+      final AndroidIntent intent = new AndroidIntent(
+        action: 'action_view',
+        data: Uri.encodeFull(url),
+        package: 'com.google.android.apps.maps',
+      );
+      intent.launch();
+    }
+    // else { // TODO add iOS support
+    //   String url = "https://www.google.com/maps/dir/?api=1&origin=" + origin + "&destination=" + destination + "&travelmode=driving&dir_action=navigate";
+    //   if (await canLaunch(url)) {
+    // await launch(url);
+    // } else {
+    // throw 'Could not launch $url';
+    // }
   }
 }
 

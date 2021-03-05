@@ -1,7 +1,7 @@
 
 automatic reload: Thread oder...?
 
-Karte einbetten (Google Maps)
+
 Master-Detail für Tablets
 Änderungsmarkierung für Veranstaltungsdetails
 Verbindung zur Kommunikation
