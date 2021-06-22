@@ -31,34 +31,34 @@ extension CalendarDateFormatStrings on CalendarDateFormat {
 }
 
 class CalendarSettingsService {
-
   static const String _CALENDAR_SORTING = "calendarSorting";
   static const String _CALENDAR_DATE_FORMAT = "calendarDateFormat";
   static const String _CALENDAR_INCLUDE_RESTRICTED = "calendarIncludeRestricted";
 
-  final List<Function(CalendarSorting, CalendarDateFormat, bool)> _listeners = List();
-  CalendarSorting _sorting = CalendarSorting.EMPTY;
+  final List<Function(CalendarSorting, CalendarDateFormat, bool)> _listeners = List.empty(growable: true);
+  late final Future<SharedPreferences> _prefs;
+  CalendarSorting _sorting = CalendarSorting.GROUP_BY_DATE;
   CalendarDateFormat _dateFormat = CalendarDateFormat.WEEKDAY_AND_DATE;
-  bool _includeRestricted;
-
-  SharedPreferences _prefs;
+  bool _includeRestricted = true;
 
   void initialize() {
-    SharedPreferences.getInstance().then((prefs) => this._prefs = prefs).then((__) {
-      final String sortingString = _prefs.get(_CALENDAR_SORTING);
+    _prefs = SharedPreferences.getInstance();
+    _prefs.then((prefs) {
+      final String? sortingString = prefs.getString(_CALENDAR_SORTING);
       _sorting = CalendarSorting.values.firstWhere((sorting) => sorting.toString() == sortingString, orElse: () => CalendarSorting.GROUP_BY_DATE);
-      final String dateFormatString = _prefs.get(_CALENDAR_DATE_FORMAT);
+      final String? dateFormatString = prefs.getString(_CALENDAR_DATE_FORMAT);
       _dateFormat = CalendarDateFormat.values.firstWhere((format) => format.toString() == dateFormatString, orElse: () => CalendarDateFormat.WEEKDAY_AND_DATE);
-      final include = _prefs.getBool(_CALENDAR_INCLUDE_RESTRICTED);
-      _includeRestricted = include != null ? include : true;
+      _includeRestricted = prefs.containsKey(_CALENDAR_INCLUDE_RESTRICTED) ? (prefs.getBool(_CALENDAR_INCLUDE_RESTRICTED) ?? false) : true;
       _callListeners();
     });
   }
 
   void resetToInitial() {
-    _prefs.remove(_CALENDAR_SORTING);
-    _prefs.remove(_CALENDAR_DATE_FORMAT);
-    _prefs.remove(_CALENDAR_INCLUDE_RESTRICTED);
+    _prefs.then((prefs) {
+      prefs.remove(_CALENDAR_SORTING);
+      prefs.remove(_CALENDAR_DATE_FORMAT);
+      prefs.remove(_CALENDAR_INCLUDE_RESTRICTED);
+    });
     _sorting = CalendarSorting.GROUP_BY_DATE;
     _dateFormat = CalendarDateFormat.WEEKDAY_AND_DATE;
     _includeRestricted = true;
@@ -72,19 +72,19 @@ class CalendarSettingsService {
 
   void setSorting(CalendarSorting sorting) {
     _sorting = sorting;
-    _prefs.setString(_CALENDAR_SORTING, sorting.toString());
+    _prefs.then((prefs) => prefs.setString(_CALENDAR_SORTING, sorting.toString()));
     _callListeners();
   }
 
   void setCalendarDateFormat(CalendarDateFormat format) {
     _dateFormat = format;
-    _prefs.setString(_CALENDAR_DATE_FORMAT, format.toString());
+    _prefs.then((prefs) => prefs.setString(_CALENDAR_DATE_FORMAT, format.toString()));
     _callListeners();
   }
 
   void setIncludeRestricted(bool include) {
     _includeRestricted = include;
-    _prefs.setBool(_CALENDAR_INCLUDE_RESTRICTED, _includeRestricted);
+    _prefs.then((prefs) => prefs.setBool(_CALENDAR_INCLUDE_RESTRICTED, _includeRestricted));
     _callListeners();
   }
 
@@ -94,8 +94,6 @@ class CalendarSettingsService {
   }
 
   void _callListeners() {
-    _listeners.forEach((listener) {
-      listener.call(_sorting, _dateFormat, _includeRestricted);
-    });
+    _listeners.forEach((listener) => listener.call(_sorting, _dateFormat, _includeRestricted));
   }
 }

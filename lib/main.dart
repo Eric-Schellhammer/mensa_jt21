@@ -1,3 +1,4 @@
+// @dart=2.9
 import 'package:flutter/material.dart';
 import 'package:mensa_jt21/screens/debug_screen.dart';
 import 'package:mensa_jt21/screens/information_screens.dart';

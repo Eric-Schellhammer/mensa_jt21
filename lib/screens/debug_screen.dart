@@ -22,11 +22,6 @@ class DebugScreenState extends State<DebugScreen> {
   final TextEditingController cancelEventController = TextEditingController();
 
   @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
   void dispose() {
     cancelEventController.dispose();
     super.dispose();
@@ -72,7 +67,7 @@ class DebugScreenState extends State<DebugScreen> {
               onPressed: GetIt.instance.get<DebugSettings>().isDebugModeActive()
                   ? () {
                       setState(() {
-                        GetIt.instance.get<DebugSettings>().activateDebugMode = false;
+                        debugSettings.activateDebugMode = false;
                         GetIt.instance.get<FavoritesService>().refreshList();
                       });
                     }
@@ -86,7 +81,7 @@ class DebugScreenState extends State<DebugScreen> {
               child: RaisedButton(
                 child: Text("App auf initiale Installation zurücksetzen"),
                 onPressed: () {
-                  GetIt.instance.get<DebugSettings>().activateDebugMode = false;
+                  debugSettings.activateDebugMode = false;
                   GetIt.instance.get<OnlineService>().resetToInitial();
                   GetIt.instance.get<FavoritesService>().resetToInitial();
                   GetIt.instance.get<CalendarSettingsService>().resetToInitial();
@@ -108,18 +103,20 @@ class DebugScreenState extends State<DebugScreen> {
     GetIt.instance.get<CalendarService>().loadDefaultCalendarFile();
   }
 
-  void _cancelEvent() {
+  void _cancelEvent() async {
     final String eventId = cancelEventController.text;
-    final String jsonString = GetIt.instance.get<CalendarService>().getRawCalendarJson();
+    final String? jsonString = await GetIt.instance.get<CalendarService>().getRawCalendarJson();
     cancelEventController.clear();
 
-    final jsonEntries = JsonDecoder().convert(jsonString);
-    if (jsonEntries != null) {
-      jsonEntries.forEach((jsonElement) {
-        final Map<String, dynamic> json = jsonElement;
-        if (json["t_ID"] == eventId) json["abgesagt"] = "1";
-      });
+    if (jsonString != null) {
+      final jsonEntries = JsonDecoder().convert(jsonString);
+      if (jsonEntries != null) {
+        jsonEntries.forEach((jsonElement) {
+          final Map<String, dynamic> json = jsonElement;
+          if (json["t_ID"] == eventId) json["abgesagt"] = "1";
+        });
+      }
+      debugSettings.simulatedCalendar = JsonEncoder().convert(jsonEntries);
     }
-    debugSettings.simulatedCalendar = JsonEncoder().convert(jsonEntries);
   }
 }

@@ -12,9 +12,9 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class SettingsScreenState extends State<SettingsScreen> {
-  OnlineMode _selectedOnlineMode;
-  CalendarSorting _selectedCalendarSorting;
-  CalendarDateFormat _selectedDateFormat;
+  late OnlineMode _selectedOnlineMode;
+  late CalendarSorting _selectedCalendarSorting;
+  late CalendarDateFormat _selectedDateFormat;
   bool _includeRestricted = true;
 
   @override
@@ -108,9 +108,7 @@ class SettingsScreenState extends State<SettingsScreen> {
                         child: Text("zusammengefasst"),
                       ),
                     ],
-                    onChanged: (sorting) {
-                      GetIt.instance.get<CalendarSettingsService>().setSorting(sorting);
-                    },
+                    onChanged: (sorting) => GetIt.instance.get<CalendarSettingsService>().setSorting(sorting!),
                   )),
             ],
           ),
@@ -138,9 +136,7 @@ class SettingsScreenState extends State<SettingsScreen> {
                         child: Text("nur Datum"),
                       ),
                     ],
-                    onChanged: (dateFormat) {
-                      GetIt.instance.get<CalendarSettingsService>().setCalendarDateFormat(dateFormat);
-                    },
+                    onChanged: (dateFormat) => GetIt.instance.get<CalendarSettingsService>().setCalendarDateFormat(dateFormat!),
                   )),
             ],
           ),
@@ -148,10 +144,9 @@ class SettingsScreenState extends State<SettingsScreen> {
             padding: EdgeInsets.fromLTRB(16, 8, 16, 8),
             child: Row(children: [
               Checkbox(
-                  value: _includeRestricted,
-                  onChanged: (include) {
-                    GetIt.instance.get<CalendarSettingsService>().setIncludeRestricted(include);
-                  }),
+                value: _includeRestricted,
+                onChanged: (include) => GetIt.instance.get<CalendarSettingsService>().setIncludeRestricted(include!),
+              ),
               Expanded(
                 child: Text("Zeige auch solche Veranstaltungen an, die als 'nicht rollstuhltauglich' gekennzeichnet sind."),
               ),
@@ -194,9 +189,7 @@ class OnlineModeButton extends StatelessWidget {
           child: Text("Automatisch"),
         ),
       ],
-      onChanged: (mode) {
-        GetIt.instance.get<OnlineService>().setOnlineMode(mode);
-      },
+      onChanged: (mode) => GetIt.instance.get<OnlineService>().setOnlineMode(mode!),
     );
   }
 }

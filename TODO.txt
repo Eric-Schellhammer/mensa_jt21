@@ -10,4 +10,3 @@ Verbindung zur Kommunikation
 Zurücksetzen auf initial: reset "only favorites" setting
 
 
-Broschüre B6

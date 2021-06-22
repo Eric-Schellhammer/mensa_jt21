@@ -16,7 +16,7 @@ class CalendarDetailsScreen extends StatefulWidget {
   final CalendarEntry calendarEntry;
   final CalendarEntryGroup calendarEntryGroup;
 
-  const CalendarDetailsScreen({Key key, this.calendarEntry, this.calendarEntryGroup}) : super(key: key);
+  const CalendarDetailsScreen({Key? key, required this.calendarEntry, required this.calendarEntryGroup}) : super(key: key);
 
   @override
   createState() => CalendarDetailsScreenState();
@@ -34,14 +34,13 @@ class CalendarDetailsScreenState extends State<CalendarDetailsScreen> {
   }
 
   bool loadImages = false;
-  _GroupMode _groupMode;
+  late _GroupMode _groupMode;
 
   @override
   void initState() {
     super.initState();
-    final favoriteService = GetIt.instance.get<FavoritesService>();
-    FavoriteButton.initialize(favoriteService, (context, calendarEntry) {
-      favoriteService.toggleFavorite(calendarEntry.eventId);
+    FavoriteButton.initialize((context, calendarEntry) {
+      GetIt.instance.get<FavoritesService>().toggleFavorite(calendarEntry.eventId);
       if (mounted) setState(() {});
     });
     loadImages = GetIt.instance.get<OnlineService>().getOnlineModeOnce() == OnlineMode.ONLINE;
@@ -68,7 +67,7 @@ class CalendarDetailsScreenState extends State<CalendarDetailsScreen> {
   }
 
   List<Widget> _getEntries() {
-    List<Widget> entries = List();
+    List<Widget> entries = List.empty(growable: true);
     entries.add(Text(
       calendarEntry.name,
       softWrap: true,
@@ -129,9 +128,9 @@ class CalendarDetailsScreenState extends State<CalendarDetailsScreen> {
   List<Widget> _addEventGroupEntries(List<Widget> entries) {
     if (calendarEntryGroup.isAllCancelled) entries.add(_subtitleCancelled("Veranstaltungsreihe wurde komplett abgesagt!"));
     _addDescription(entries);
-    List<PropertySelector> commonSelectors = List();
-    List<PropertySelector> specificSelectors = List();
-    _getSelectors().forEach((selector) {
+    List<PropertySelector> commonSelectors = List.empty(growable: true);
+    List<PropertySelector> specificSelectors = List.empty(growable: true);
+    _listOfSelectors.forEach((selector) {
       if (calendarEntryGroup.entries.any((element) => !selector.areEqual(calendarEntry, element)))
         specificSelectors.add(selector);
       else
@@ -165,13 +164,18 @@ class CalendarDetailsScreenState extends State<CalendarDetailsScreen> {
     if (loadImages && calendarEntry.bild != null)
       entries.add(
         Html(
-            data:
-                "<img src=\"https://event-orga.mensa.de/getImage.php?h=300&jt=jt2020&name=" + calendarEntry.bild + "\" alt=\"" + calendarEntry.bildtitel + "\" class=\"center\">"),
+            data: "<img src=\"https://event-orga.mensa.de/getImage.php?h=300&jt=jt2020&name=" +
+                calendarEntry.bild! +
+                "\" alt=\"" +
+                (calendarEntry.bildtitel ?? "") +
+                "\" class=\"center\">"),
       );
     entries.add(_subsectionTitle("Beschreibung"));
+    var renderedTags = Html.tags;
+    if (!loadImages) renderedTags..remove("iframe")..remove("video")..remove("img");
     entries.add(Html(
       data: calendarEntry.eventtext,
-      blacklistedElements: loadImages ? [] : ["img"],
+      tagsList: renderedTags,
     ));
   }
 
@@ -192,14 +196,14 @@ class CalendarDetailsScreenState extends State<CalendarDetailsScreen> {
   }
 
   List<Widget> _getSingleGeneral(CalendarEntry entry) {
-    List<Widget> entries = List();
+    List<Widget> entries = List.empty(growable: true);
     _getSelectors().forEach((element) {
       element.addWidget(entries, entry);
     });
     return entries;
   }
 
-  Widget _getShortForDate({CalendarEntry entry, List<PropertySelector> selectors, bool withNavigation = false}) {
+  Widget _getShortForDate({required CalendarEntry entry, List<PropertySelector>? selectors, bool withNavigation = false}) {
     final Widget lines = Column(children: _getSpecificEntries(entry, selectors));
     final Row row = Row(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -239,9 +243,9 @@ class CalendarDetailsScreenState extends State<CalendarDetailsScreen> {
           );
   }
 
-  List<Widget> _getSpecificEntries(CalendarEntry entry, List<PropertySelector> selectors) {
+  List<Widget> _getSpecificEntries(CalendarEntry entry, List<PropertySelector>? selectors) {
     final textStyle = CalendarEntryTextStyle(entry);
-    List<Widget> entries = List();
+    List<Widget> entries = List.empty(growable: true);
     entries.add(Padding(
       padding: EdgeInsets.only(top: 8),
       child: TitleAndElement(
@@ -254,7 +258,7 @@ class CalendarDetailsScreenState extends State<CalendarDetailsScreen> {
       entries.add(TitleAndElement(
         title: "Abmarsch",
         value: Text(
-          DateFormat("HH:mm 'Uhr'").format(entry.abmarsch),
+          DateFormat("HH:mm 'Uhr'").format(entry.abmarsch!),
           style: textStyle,
         ),
         textStyle: textStyle,
@@ -266,23 +270,21 @@ class CalendarDetailsScreenState extends State<CalendarDetailsScreen> {
     return entries;
   }
 
-  static List<PropertySelector> _listOfSelectors;
+  static List<PropertySelector> _listOfSelectors = _getSelectors();
 
   static List<PropertySelector> _getSelectors() {
-    if (_listOfSelectors == null) {
-      _listOfSelectors = List();
-      _listOfSelectors.add(TextPropertySelector("Kategorie", (entry) => entry.kategorie));
-      _listOfSelectors.add(TextPropertySelector("Anbieter", (entry) => entry.anbieter));
-      _listOfSelectors.add(LengthSelector());
-      _listOfSelectors.add(LocationSelector());
-      _listOfSelectors.add(TextPropertySelector("Gebäude", (entry) => entry.gebaeude));
-      _listOfSelectors.add(TextPropertySelector("Raum", (entry) => entry.raum));
-      _listOfSelectors.add(TextPropertySelector("Wordpress", (entry) => entry.wordpress));
-      _listOfSelectors.add(TextPropertySelector("Barrierefreiheit", (entry) => entry.barrierefreiheit));
-      _listOfSelectors.add(TextPropertySelector("Haltestelle", (entry) => entry.haltestelle));
-      _listOfSelectors.add(CoordinatesSelector());
-    }
-    return _listOfSelectors;
+    return [
+      TextPropertySelector("Kategorie", (entry) => entry.kategorie),
+      TextPropertySelector("Anbieter", (entry) => entry.anbieter),
+      LengthSelector(),
+      LocationSelector(),
+      TextPropertySelector("Gebäude", (entry) => entry.gebaeude),
+      TextPropertySelector("Raum", (entry) => entry.raum),
+      TextPropertySelector("Wordpress", (entry) => entry.wordpress),
+      TextPropertySelector("Barrierefreiheit", (entry) => entry.barrierefreiheit),
+      TextPropertySelector("Haltestelle", (entry) => entry.haltestelle),
+      CoordinatesSelector(),
+    ];
   }
 }
 
@@ -313,7 +315,7 @@ abstract class SinglePropertySelector extends PropertySelector {
 class TextPropertySelector extends SinglePropertySelector {
   final String name;
 
-  TextPropertySelector(this.name, String Function(CalendarEntry) selector) : super(selector);
+  TextPropertySelector(this.name, String? Function(CalendarEntry) selector) : super(selector);
 
   @override
   void addWidget(List<Widget> entries, CalendarEntry entry) {
@@ -333,16 +335,16 @@ class LengthSelector extends SinglePropertySelector {
 class CoordinatesSelector extends PropertySelector {
   @override
   void addWidget(List<Widget> entries, CalendarEntry entry) {
-    if (entry.lat != null && double.parse(entry.lat) != 0)
+    if (entry.lat != null && entry.lon != null && double.parse(entry.lat!) != 0 && double.parse(entry.lon!) != 0)
       entries.add(TitleAndElement(
         title: "Koordinaten",
         value: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-          Column(children: [Text("N" + entry.lat + "°"), Text("E" + entry.lon + "°")]),
+          Column(children: [Text("N" + entry.lat! + "°"), Text("E" + entry.lon! + "°")]),
           IconButton(
             padding: EdgeInsets.only(left: 18),
             constraints: BoxConstraints(),
             icon: Icon(Icons.map),
-            onPressed: () => _openMap(entry.lat, entry.lon),
+            onPressed: () => _openMap(entry.lat!, entry.lon!),
           ),
         ]),
       ));
@@ -382,9 +384,9 @@ class LocationSelector extends PropertySelector {
       value: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(entry.location ?? ""),
-          Text(entry.strasse ?? ""),
-          Text((entry.plz ?? "") + " " + (entry.ortsname ?? "")),
+          Text(entry.location),
+          Text(entry.strasse),
+          Text((entry.plz) + " " + (entry.ortsname)),
         ],
       ),
     ));

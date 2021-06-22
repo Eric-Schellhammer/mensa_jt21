@@ -14,21 +14,20 @@ enum OnlineMode {
 class OnlineService {
   static const _ONLINE_MODE = "onlineMode";
 
-  SharedPreferences _prefs;
-  OnlineMode _mode;
-
-  List<Function(OnlineMode)> _listeners = List();
+  late final Future<SharedPreferences> _prefs;
+  final List<Function(OnlineMode)> _listeners = List.empty(growable: true);
+  OnlineMode _mode = OnlineMode.INITIAL;
 
   void init() {
-    SharedPreferences.getInstance().then((prefs) => this._prefs = prefs).then((__) {
-      final String onlineModeString = _prefs.get(_ONLINE_MODE);
+    _prefs = SharedPreferences.getInstance();
+    _prefs.then((prefs) {
+      final String? onlineModeString = prefs.getString(_ONLINE_MODE);
       setOnlineMode(OnlineMode.values.firstWhere((mode) => mode.toString() == onlineModeString, orElse: () => OnlineMode.INITIAL));
     });
   }
 
   void resetToInitial() {
     setOnlineMode(OnlineMode.INITIAL);
-    _mode = OnlineMode.INITIAL;
   }
 
   void registerModeListener(Function(OnlineMode) listener) {
@@ -38,7 +37,7 @@ class OnlineService {
 
   void setOnlineMode(OnlineMode mode) {
     _mode = mode;
-    _prefs.setString(_ONLINE_MODE, mode.toString());
+    _prefs.then((prefs) => prefs.setString(_ONLINE_MODE, mode.toString()));
     _listeners.forEach((listener) {
       listener.call(_mode);
     });

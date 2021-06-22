@@ -11,17 +11,18 @@ class CalendarService {
   static const String _CALENDAR_ENTRIES = "calendarEntries";
   static const String _CALENDAR_DATE = "calendarDate";
 
-  SharedPreferences _prefs;
-  List<CalendarEntry> _calendarEntries;
-  DateTime _calendarDate;
-  Function(bool) _updateAvailableListener;
-  Function(List<CalendarEntry>) _calendarListener;
+  late final Future<SharedPreferences> _prefs;
+  List<CalendarEntry>? _calendarEntries;
+  late DateTime _calendarDate;
+  Function(bool)? _updateAvailableListener;
+  Function(List<CalendarEntry>)? _calendarListener;
 
   void initializeWithLocalFile() {
     loadDefaultCalendarFile();
-    SharedPreferences.getInstance().then((prefs) => this._prefs = prefs).then((__) {
-      final String dateString = _prefs.get(_CALENDAR_DATE);
-      if (dateString != null) _setCalendarJson(dateString, _prefs.get(_CALENDAR_ENTRIES));
+    _prefs = SharedPreferences.getInstance();
+    _prefs.then((prefs) {
+      final String? dateString = prefs.containsKey(_CALENDAR_DATE) ? prefs.getString(_CALENDAR_DATE) : null;
+      if (dateString != null) _setCalendarJson(dateString, prefs.getString(_CALENDAR_ENTRIES)!);
     });
   }
 
@@ -32,7 +33,7 @@ class CalendarService {
 
   void registerCalendarListener(Function(List<CalendarEntry>) listener) {
     _calendarListener = listener;
-    if (_calendarEntries != null) _calendarListener.call(_calendarEntries);
+    if (_calendarEntries != null) _calendarListener!.call(_calendarEntries!);
   }
 
   /// Check online if an update of the calendar is available, and return the result into the receiver
@@ -46,7 +47,7 @@ class CalendarService {
   }
 
   void checkIfUpdateAvailable() {
-    if (_updateAvailableListener != null) isUpdateAvailable(_updateAvailableListener);
+    if (_updateAvailableListener != null) isUpdateAvailable(_updateAvailableListener!);
   }
 
   /// Check online if an update of the calendar is available and if so, load it
@@ -66,20 +67,22 @@ class CalendarService {
   }
 
   Set<String> getBarrierefreiEntries() {
-    return _calendarEntries.map((entry) => entry.barrierefreiheit).toSet();
+    return _calendarEntries!.map((entry) => entry.barrierefreiheit).toSet();
   }
 
   void _setCalendarJson(String calendarDateJson, String calendarJson) {
-    _prefs.setString(_CALENDAR_DATE, calendarDateJson);
-    _prefs.setString(_CALENDAR_ENTRIES, calendarJson);
+    _prefs.then((prefs) {
+      prefs.setString(_CALENDAR_DATE, calendarDateJson);
+      prefs.setString(_CALENDAR_ENTRIES, calendarJson);
+    });
     _calendarDate = _convertDate(calendarDateJson);
     _calendarEntries = _convertEntries(calendarJson);
-    _calendarEntries.sort();
+    _calendarEntries!.sort();
     _callListener();
   }
 
   void _callListener() {
-    if (_calendarListener != null) _calendarListener.call(_calendarEntries);
+    if (_calendarListener != null) _calendarListener!.call(_calendarEntries!);
   }
 
   DateTime _convertDate(String jsonString) {
@@ -87,7 +90,7 @@ class CalendarService {
   }
 
   List<CalendarEntry> _convertEntries(String jsonString) {
-    final List<CalendarEntry> entries = List();
+    final List<CalendarEntry> entries = List.empty(growable: true);
     final jsonEntries = JsonDecoder().convert(jsonString);
     if (jsonEntries != null) {
       jsonEntries.forEach((jsonElement) {
@@ -97,8 +100,8 @@ class CalendarService {
     return entries;
   }
 
-  String getRawCalendarJson() {
-    return _prefs.getString(_CALENDAR_ENTRIES);
+  Future<String?> getRawCalendarJson() {
+    return _prefs.then((prefs) => prefs.getString(_CALENDAR_ENTRIES));
   }
 }
 
@@ -114,42 +117,42 @@ class CalendarEntry implements Comparable<CalendarEntry> {
   final String strasse;
   final String plz;
   final String ortsname;
-  final String gebaeude;
-  final String raum;
-  final String lat;
-  final String lon;
-  final DateTime abmarsch;
+  final String? gebaeude;
+  final String? raum;
+  final String? lat;
+  final String? lon;
+  final DateTime? abmarsch;
   final bool abgesagt;
-  final String wordpress;
+  final String? wordpress;
   final String eventtext;
-  final String bild;
-  final String bildtitel;
+  final String? bild;
+  final String? bildtitel;
   final String barrierefreiheit;
-  final String haltestelle;
+  String? haltestelle;
 
   CalendarEntry(
-      {this.eventGroupId,
-      this.eventId,
-      this.name,
-      this.kategorie,
-      this.dauer,
-      this.start,
-      this.anbieter,
-      this.location,
-      this.strasse,
-      this.plz,
-      this.ortsname,
+      {required this.eventGroupId,
+      required this.eventId,
+      required this.name,
+      required this.kategorie,
+      required this.dauer,
+      required this.start,
+      required this.anbieter,
+      required this.location,
+      required this.strasse,
+      required this.plz,
+      required this.ortsname,
       this.gebaeude,
       this.raum,
       this.lat,
       this.lon,
       this.abmarsch,
-      this.abgesagt,
+      required this.abgesagt,
       this.wordpress,
-      this.eventtext,
+      required this.eventtext,
       this.bild,
       this.bildtitel,
-      this.barrierefreiheit,
+      required this.barrierefreiheit,
       this.haltestelle});
 
   factory CalendarEntry.fromJson(Map<String, dynamic> json) {
@@ -188,7 +191,7 @@ class CalendarEntry implements Comparable<CalendarEntry> {
     return CascadedComparator(this, other).then((ce) => ce.start).then((ce) => ce.name).calculate();
   }
 
-  static DateTime parseAbmarsch(String abmarsch) {
+  static DateTime? parseAbmarsch(String? abmarsch) {
     if (abmarsch == null || abmarsch.isEmpty || abmarsch == "00:00:00")
       return null;
     else

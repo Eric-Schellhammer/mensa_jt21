@@ -4,7 +4,7 @@ import 'package:mensa_jt21/calendar/calendar_widgets.dart';
 import 'package:mensa_jt21/screens/calendar_details_screen.dart';
 
 class CalendarEntryGroup implements Comparable<CalendarEntryGroup> {
-  final List<CalendarEntry> entries = List();
+  final List<CalendarEntry> entries = List.empty(growable: true);
   bool isAllCancelled = false;
   bool _needsCalculation = true;
 
@@ -40,7 +40,7 @@ class CalendarGroupListWidget extends StatelessWidget {
   }
 
   List<Widget> _getEntries(BuildContext context, CalendarEntry calendarEntry) {
-    final List<Widget> entries = List();
+    final List<Widget> entries = List.empty(growable: true);
     entries.add(_getHeader(context, calendarEntry));
     group.entries.forEach((element) {
       entries.add(_getSingleDateEntry(context, element));
@@ -55,6 +55,7 @@ class CalendarGroupListWidget extends StatelessWidget {
             context,
             MaterialPageRoute(
               builder: (context) => CalendarDetailsScreen(
+                calendarEntry: calendarEntry,
                 calendarEntryGroup: group,
               ),
             ));
@@ -77,8 +78,8 @@ class CalendarGroupListWidget extends StatelessWidget {
   }
 
   List<Widget> _getHeaderEntries(BuildContext context, CalendarEntry calendarEntry) {
-    final textStyle = Theme.of(context).textTheme.bodyText2;
-    List<Widget> entries = List();
+    final TextStyle textStyle = Theme.of(context).textTheme.bodyText2!;
+    List<Widget> entries = List.empty(growable: true);
     entries.add(Padding(
       padding: EdgeInsets.only(bottom: 16),
       child: Text(

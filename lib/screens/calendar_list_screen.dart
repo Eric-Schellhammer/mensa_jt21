@@ -31,16 +31,16 @@ class CalendarListScreenState extends State<CalendarListScreen> {
 
   static const int _minSearchLength = 3;
 
-  List<CalendarEntry> _allEventsByDate = List();
-  List<CalendarEntry> _selectedEventsByDate;
-  Map<int, CalendarEntryGroup> _selectedEventsByType;
-  List<Widget> _displayedWidgets = List();
+  List<CalendarEntry> _allEventsByDate = List.empty(growable: true);
+  List<CalendarEntry>? _selectedEventsByDate;
+  late Map<int, CalendarEntryGroup> _selectedEventsByType;
+  List<Widget> _displayedWidgets = List.empty(growable: true);
   CalendarSorting _sorting = CalendarSorting.EMPTY;
-  DateTime _selectedDate;
+  DateTime? _selectedDate;
   bool _onlyFavorites = false;
-  CalendarDateFormat _dateFormat;
-  OnlineMode _onlineMode;
-  bool _includeRestricted;
+  late CalendarDateFormat _dateFormat;
+  late OnlineMode _onlineMode;
+  late bool _includeRestricted;
   bool _initialSettingsActive = false;
   bool _updateAvailable = false;
   bool _searchActive = false;
@@ -101,46 +101,38 @@ class CalendarListScreenState extends State<CalendarListScreen> {
         else
           FocusScope.of(context).unfocus();
       },
-      decoration: InputDecoration(
-        hintText: "Titelsuche",
-      ),
+      decoration: InputDecoration(hintText: "Titelsuche"),
     );
   }
 
   List<Widget> _getActions() {
-    List<Widget> actions = List();
+    List<Widget> actions = List.empty(growable: true);
     if (_searchActive) {
       actions.add(IconButton(
         icon: Icon(Icons.cancel),
-        onPressed: () {
-          setState(() {
-            _searchActive = false;
-            _transferEventsToWidgets();
-          });
-        },
+        onPressed: () => setState(() {
+          _searchActive = false;
+          _transferEventsToWidgets();
+        }),
       ));
     } else {
       actions.add(IconButton(
         icon: Icon(Icons.search),
-        onPressed: () {
-          setState(() {
-            searchController.clear();
-            _searchActive = true;
-          });
-        },
+        onPressed: () => setState(() {
+          searchController.clear();
+          _searchActive = true;
+        }),
       ));
     }
     actions.add(PopupMenuButton<String>(
       onSelected: _handleMenuClick,
-      itemBuilder: (BuildContext context) {
-        return _getMenuEntries();
-      },
+      itemBuilder: (BuildContext context) => _getMenuEntries(),
     ));
     return actions;
   }
 
   List<PopupMenuItem<String>> _getMenuEntries() {
-    List<PopupMenuItem<String>> entries = List();
+    List<PopupMenuItem<String>> entries = List.empty(growable: true);
     if (_onlineMode == OnlineMode.MANUAL || _onlineMode == OnlineMode.ON_DEMAND) {
       entries.add(PopupMenuItem(
         value: MENU_CHECK,
@@ -182,9 +174,7 @@ class CalendarListScreenState extends State<CalendarListScreen> {
         break;
       case MENU_UPDATE:
         GetIt.instance.get<CalendarService>().checkForUpdateAndLoad();
-        setState(() {
-          _updateAvailable = false;
-        });
+        setState(() => _updateAvailable = false);
         showDialog(
             context: context,
             builder: (BuildContext context) {
@@ -193,9 +183,7 @@ class CalendarListScreenState extends State<CalendarListScreen> {
                 actions: [
                   TextButton(
                     child: Text("OK"),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
+                    onPressed: () => Navigator.of(context).pop(),
                   )
                 ],
               );
@@ -239,9 +227,7 @@ class CalendarListScreenState extends State<CalendarListScreen> {
                 actions: [
                   TextButton(
                     child: Text("OK"),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
+                    onPressed: () => Navigator.of(context).pop(),
                     onLongPress: DebugSettings.debugModeAvailable
                         ? () {
                             setState(() {
@@ -278,9 +264,7 @@ class CalendarListScreenState extends State<CalendarListScreen> {
                     TextButton(
                       child: Text("Später manuell aktualisieren"),
                       onPressed: () {
-                        setState(() {
-                          _updateAvailable = true;
-                        });
+                        setState(() => _updateAvailable = true);
                         Navigator.of(context).pop();
                       },
                     ),
@@ -297,9 +281,7 @@ class CalendarListScreenState extends State<CalendarListScreen> {
                   actions: [
                     TextButton(
                       child: Text("OK"),
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
+                      onPressed: () => Navigator.of(context).pop(),
                     )
                   ],
                 );
@@ -314,9 +296,7 @@ class CalendarListScreenState extends State<CalendarListScreen> {
                 actions: [
                   TextButton(
                     child: Text("OK"),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
+                    onPressed: () => Navigator.of(context).pop(),
                   )
                 ],
               );
@@ -333,7 +313,7 @@ class CalendarListScreenState extends State<CalendarListScreen> {
   }
 
   Drawer _buildDrawer() {
-    final List<Widget> drawerEntries = List();
+    final List<Widget> drawerEntries = List.empty(growable: true);
     drawerEntries.add(
       DrawerHeader(
         child: Image(image: AssetImage('resources/images/splash.png')),
@@ -354,9 +334,7 @@ class CalendarListScreenState extends State<CalendarListScreen> {
           ListTile(
             title: Text('Veranstaltungskalender'),
             onTap: () {
-              _updateStateAndRefreshList(() {
-                _onlyFavorites = false;
-              });
+              _updateStateAndRefreshList(() => _onlyFavorites = false);
               Navigator.pop(context);
             },
           ),
@@ -397,9 +375,7 @@ class CalendarListScreenState extends State<CalendarListScreen> {
       ListTile(
         title: Text('Favoriten'),
         onTap: () {
-          _updateStateAndRefreshList(() {
-            _onlyFavorites = true;
-          });
+          _updateStateAndRefreshList(() => _onlyFavorites = true);
           Navigator.pop(context);
         },
       ),
@@ -420,9 +396,7 @@ class CalendarListScreenState extends State<CalendarListScreen> {
   }
 
   void _updateUpdateAvailable(bool isAvailable) {
-    _updateStateAndRefreshList(() {
-      _updateAvailable = isAvailable;
-    });
+    _updateStateAndRefreshList(() => _updateAvailable = isAvailable);
   }
 
   void _updateCalendarEntries(List<CalendarEntry> calendar) {
@@ -455,26 +429,21 @@ class CalendarListScreenState extends State<CalendarListScreen> {
 
   void _refreshList() {
     if (mounted)
-      setState(() {
-        _transferEventsToWidgets();
-      });
+      setState(() => _transferEventsToWidgets());
     else
       _transferEventsToWidgets();
   }
 
   void _toggleFavoriteState(BuildContext context, CalendarEntry event) {
     final isNowFavorite = GetIt.instance.get<FavoritesService>().toggleFavorite(event.eventId);
-    if (_onlyFavorites &&
-        !isNowFavorite &&
-        (_sorting == CalendarSorting.ALL_BY_DATE || _sorting == CalendarSorting.GROUP_BY_DATE || _sorting == CalendarSorting.GROUP_BY_TYPE)) {
+    if (_onlyFavorites && !isNowFavorite && (_sorting == CalendarSorting.ALL_BY_DATE || _sorting == CalendarSorting.GROUP_BY_DATE || _sorting == CalendarSorting.GROUP_BY_TYPE)) {
       Scaffold.of(context).showSnackBar(SnackBar(
         content: Text((event.takesPlace ? "Veranstaltung \"" : "Abgesagte Veranstaltung \"") + event.name + "\" entfernt"),
         action: event.takesPlace
             ? SnackBarAction(
                 label: "Rückgängig",
-                onPressed: () {
-                  GetIt.instance.get<FavoritesService>().toggleFavorite(event.eventId);
-                })
+                onPressed: () => GetIt.instance.get<FavoritesService>().toggleFavorite(event.eventId),
+              )
             : null,
       ));
     }
@@ -482,37 +451,32 @@ class CalendarListScreenState extends State<CalendarListScreen> {
 
   void _transferEventsToWidgets() {
     CalendarListEntryWidget.isDebugModeActive = GetIt.instance.get<DebugSettings>().isDebugModeActive();
-    final _favoritesService = GetIt.instance.get<FavoritesService>();
-    FavoriteButton.initialize(_favoritesService, (context, event) {
-      _toggleFavoriteState(context, event);
-    });
+    FavoriteButton.initialize((context, event) => _toggleFavoriteState(context, event));
     _refreshFilter();
-    _displayedWidgets = List();
-    if (_selectedEventsByDate == null || _selectedEventsByDate.isEmpty) {
+    _displayedWidgets = List.empty(growable: true);
+    if (_selectedEventsByDate == null || _selectedEventsByDate!.isEmpty) {
       _displayedWidgets.add(_centralWarning("Keine passenden Veranstaltungen."));
       return;
     }
     final effSorting = _onlyFavorites ? CalendarSorting.ALL_BY_DATE : _sorting;
-    final bool Function(CalendarEntry) filterByFavorites = _onlyFavorites ? (entry) => _favoritesService.isFavorite(entry.eventId) : (__) => true;
+    final bool Function(CalendarEntry) filterByFavorites = _onlyFavorites ? (entry) => GetIt.instance.get<FavoritesService>().isFavorite(entry.eventId) : (__) => true;
     switch (effSorting) {
       case CalendarSorting.EMPTY:
         break;
       case CalendarSorting.ALL_BY_DATE:
-        DateTime lastDay;
-        _selectedEventsByDate.where(filterByFavorites).forEach((eventEntry) {
+        DateTime? lastDay;
+        _selectedEventsByDate!.where(filterByFavorites).forEach((eventEntry) {
           final DateTime currentDay = _getDate(eventEntry.start);
           if (lastDay == null || lastDay != currentDay) {
             _displayedWidgets.add(_createDateHeader(eventEntry.start));
             lastDay = currentDay;
           }
-          _displayedWidgets.add(new CalendarListEntryWidget(eventEntry, _selectedEventsByType[eventEntry.eventGroupId]));
+          _displayedWidgets.add(new CalendarListEntryWidget(eventEntry, _selectedEventsByType[eventEntry.eventGroupId]!));
         });
         if (_displayedWidgets.isEmpty && _onlyFavorites) {
           _displayedWidgets.add(_centralWarning("Keine Favoriten ausgewählt"));
           _displayedWidgets.add(TextButton(
-            onPressed: () => _updateStateAndRefreshList(() {
-              _onlyFavorites = false;
-            }),
+            onPressed: () => _updateStateAndRefreshList(() => _onlyFavorites = false),
             child: Center(child: Text("OK")),
           ));
         }
@@ -521,17 +485,15 @@ class CalendarListScreenState extends State<CalendarListScreen> {
         if (_selectedDate == null) {
           _selectedDate = _getDate(_allEventsByDate[0].start);
         }
-        _displayedWidgets.add(_createDateHeader(_selectedDate));
-        _selectedEventsByDate.where((eventEntry) => _getDate(eventEntry.start) == _selectedDate).forEach((eventEntry) {
-          _displayedWidgets.add(new CalendarListEntryWidget(eventEntry, _selectedEventsByType[eventEntry.eventGroupId]));
+        _displayedWidgets.add(_createDateHeader(_selectedDate!));
+        _selectedEventsByDate!.where((eventEntry) => _getDate(eventEntry.start) == _selectedDate).forEach((eventEntry) {
+          _displayedWidgets.add(new CalendarListEntryWidget(eventEntry, _selectedEventsByType[eventEntry.eventGroupId]!));
         });
         break;
       case CalendarSorting.GROUP_BY_TYPE:
         final List<CalendarEntryGroup> groups = _selectedEventsByType.values.toList();
         groups.sort();
-        groups.forEach((group) {
-          _displayedWidgets.add(CalendarGroupListWidget(group));
-        });
+        groups.forEach((group) => _displayedWidgets.add(CalendarGroupListWidget(group)));
         break;
     }
   }
@@ -546,7 +508,7 @@ class CalendarListScreenState extends State<CalendarListScreen> {
   }
 
   void _refreshFilter() {
-    _selectedEventsByDate = List();
+    _selectedEventsByDate = List.empty(growable: true);
     _selectedEventsByType = Map();
     if (_allEventsByDate == null || _allEventsByDate.isEmpty) return;
     final bool Function(CalendarEntry) filterByRestricted = _includeRestricted ? (__) => true : (entry) => entry.barrierefreiheit != "Nicht rollstuhltauglich";
@@ -554,9 +516,7 @@ class CalendarListScreenState extends State<CalendarListScreen> {
     final bool Function(CalendarEntry) filterBySearch =
         _searchActive && searchText.length >= _minSearchLength ? (entry) => entry.name.toLowerCase().contains(searchText.toLowerCase()) : (__) => true;
     _selectedEventsByDate = _allEventsByDate.where(filterByRestricted).where(filterBySearch).toList();
-    _selectedEventsByDate.forEach((eventEntry) {
-      _selectedEventsByType.putIfAbsent(eventEntry.eventGroupId, () => CalendarEntryGroup()).entries.add(eventEntry);
-    });
+    _selectedEventsByDate!.forEach((eventEntry) => _selectedEventsByType.putIfAbsent(eventEntry.eventGroupId, () => CalendarEntryGroup()).entries.add(eventEntry));
   }
 
   Widget _createDateHeader(DateTime date) {
@@ -571,9 +531,7 @@ class CalendarListScreenState extends State<CalendarListScreen> {
 
   void _updateOnlineMode(OnlineMode onlineMode) {
     if (mounted)
-      setState(() {
-        _onlineMode = onlineMode;
-      });
+      setState(() => _onlineMode = onlineMode);
     else {
       _onlineMode = onlineMode;
     }
@@ -597,7 +555,7 @@ class CalendarListScreenState extends State<CalendarListScreen> {
   }
 
   List<Widget> _initialScreenElements() {
-    List<Widget> elements = List();
+    final List<Widget> elements = List.empty(growable: true);
     elements.add(Image(image: AssetImage('resources/images/splash.png')));
     elements.add(Padding(
       padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
@@ -648,12 +606,9 @@ class CalendarListScreenState extends State<CalendarListScreen> {
     elements.add(Padding(
         padding: EdgeInsets.only(bottom: 16),
         child: RaisedButton(
-            child: Text("OK"),
-            onPressed: () {
-              setState(() {
-                _initialSettingsActive = false;
-              });
-            })));
+          child: Text("OK"),
+          onPressed: () => setState(() => _initialSettingsActive = false),
+        )));
     return elements;
   }
 }
